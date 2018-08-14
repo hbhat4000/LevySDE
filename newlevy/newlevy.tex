@@ -1,0 +1,93 @@
+\documentclass[11pt,letterpaper]{article}
+\usepackage{graphicx}
+\usepackage[margin=1.25in]{geometry}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\newcommand{\cov}{\operatorname{cov}}
+\newcommand{\Var}{\operatorname{Var}}
+\usepackage{float}
+
+\begin{document}
+\begin{center}
+\textbf{Characteristic Function Evolution for Levy SDE}
+\end{center}
+
+\noindent Let $L_t^{\alpha}$ denote an $\alpha$-stable Levy processes, i.e., a process such that:
+\begin{enumerate}
+\item $L_0^\alpha = 0$ almost surely,
+\item $L_t^\alpha$ has independent increments, and
+\item For $t > s \geq 0$, $L_t^\alpha - L_s^\alpha \sim S_\alpha((t-s)^{1/\alpha},0,0)$.  That is, the increment over a time interval of length $t-s$ has an $\alpha$-stable distribution with scale parameter $\sigma = (t-s)^{1/\alpha}$, skewness parameter $\beta=0$, and location parameter $\mu=0$.  The characteristic function of this increment is:
+\begin{equation}
+\label{eqn:cfinc}
+E[\exp(i s (L_t^\alpha - L_s^\alpha))] = \exp(-(t-s) |s|^\alpha).
+\end{equation}
+\end{enumerate}
+
+\noindent Now consider the stochastic differential equation (SDE)
+\begin{equation}
+\label{eqn:sde}
+dX_t = f(X_t) dt + g(X_t) dL_t^{\alpha}.
+\end{equation}
+Let $p(x,t)$ denote the probability density function (PDF) of $X_t$---note that $p$ is the exact PDF of the exact solution of the SDE.
+
+Suppose that $p(x,0)$ is given.  Our goal is to compute $p(x,t)$ for $t > 0$.
+
+To derive our method, we first discretize (\ref{eqn:sde}) in time via Euler-Maruyama with step $h > 0$:
+\begin{equation}
+\label{eqn:em}
+x_{n+1} = x_n + f(x_{n}) h + g(x_{n}) \Delta L_{n+1}^{\alpha},
+\end{equation}
+where $\Delta L_{n+1}^{\alpha}$ is independent of $x_n$ and has characteristic function
+\begin{equation}
+\label{eqn:emchar}
+\psi_{\Delta L^{\alpha}_{n+1}}(s) = \exp(- h |s|^\alpha).
+\end{equation}
+The drift $f$ and diffusion $g$ functions can be assumed to be smooth.  We can also assume that $g$ is bounded away from zero, i.e., that there exists $\delta > 0$ such that $|g(x)| \geq \delta$ for all $x$.  In fact, it is of interest to solve this problem (well) in the case where $g$ is a positive constant.
+
+We let $\tilde{p}(x,t_n)$ denote the exact PDF of $x_n$, itself an approximation to the exact solution at time $t_n$, $X(t_n)$.
+
+Let us denote the conditional density of $x_{n+1}$ given $x_n = y$ by $p_{n+1, n}(x | y)$.  Applying this to (\ref{eqn:em}), we obtain the following evolution equation for the marginal density of $x_n$:
+\begin{equation}
+\label{dtq}
+\tilde{p}(x, t_{n+1})=\int_{-\infty}^\infty p_{n+1, n}(x | y ) \tilde{p}(y, t_n) \, dy.
+\end{equation}
+\noindent
+From (\ref{eqn:em}), we can show that the characteristic function of the conditional density $p_{n+1, n}(x | y )$  is
+$$
+e^{is \left(y+ f(y)h \right)}\exp (- h |s g(y)|^{\alpha} ).
+$$
+Therefore, we can compute the characteristic function using
+$$
+\psi_{n+1}(s) = \int_{x=-\infty}^{\infty}e^{isx}\tilde{p}(x,t_{n+1})dx.
+$$
+The characteristic function is given by
+\begin{equation}
+\label{eqn:CFupdate}
+\psi_{n+1}(s) = \int_{y=-\infty}^{\infty}e^{is\left(y+f(y)h\right)}\exp{\left(  -h |s g(y)|^{\alpha} \right)}\tilde{p}(y, t_n) dy.
+\end{equation}
+Since
+\begin{equation}
+\label{eqn:inverseFT}
+\tilde{p}(y, t_n) = \frac{1}{2\pi}\int_{u=-\infty}^{\infty}e^{-iuy}\psi_{n}(u)du
+\end{equation}
+from (\ref{eqn:CFupdate}) we get
+\begin{equation}
+\psi_{n+1}(s) =  \int_{u=-\infty}^{\infty}\left[\frac{1}{2\pi}\int_{y=-\infty}^{\infty}e^{is\left(y+f(y)h\right)}\exp{\left(  -h |s g(y)|^{\alpha} \right)}e^{-iuy}dy \right]\psi_{n}(u) du.\nonumber
+\end{equation}
+Let
+$$
+K(s,u) = \frac{1}{2\pi}\int_{y=-\infty}^{\infty}e^{is\left(y+f(y)h\right)}\exp{\left(  -h |s g(y)|^{\alpha} \right)}e^{-iuy}dy.
+$$
+and we get
+\begin{equation}
+\label{eqn:ctq}
+\psi_{n+1}(s) =  \int_{u=-\infty}^{\infty}K(s,u)\psi_{n}(u) du.
+\end{equation}
+\textbf{Up to quadrature, (\ref{eqn:ctq}) is the algorithm.} The idea now is to spatially discretize the characteristic function $\psi_0(s)$ in space and then apply quadrature repeatedly to advance forward in time via (\ref{eqn:ctq}).  If, at any point, we want to retrieve the PDF from the characteristic function, we use (\ref{eqn:inverseFT}).
+We have several choices for how to carry out the spatial discretization.  Among these, some leading candidates are:
+\begin{enumerate}
+\item A simple, finite-difference approach. Pick an equispaced grid in $s$ space, truncate the integral, sample $K(s,u)$ on the equispaced grid, and convert (\ref{eqn:ctq}) into simple matrix multiplication.
+\item A collocation method in which we express $\psi_n(u)$ as a linear combination of basis functions.  We then require (\ref{eqn:ctq}) to hold at a number of points equal to the number of coefficients (or basis functions).  Ultimately, if $\beta_n$ are the coefficients of $\psi_n$, this should result in an update equation of the form $\beta_{n+1} = B^{-1} A B \beta_n$.
+\end{enumerate}
+
+\end{document}
