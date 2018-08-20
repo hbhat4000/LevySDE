@@ -6,7 +6,7 @@ import matplotlib.animation as manimation
 import scipy.stats as ss
 
 FFMpegWriter = manimation.writers['ffmpeg']
-metadata = dict(title='Levy SDE 2', artist='Matplotlib', comment='HSB')
+metadata = dict(title='Levy SDE 1', artist='Matplotlib', comment='HSB')
 writer = FFMpegWriter(fps=15, metadata=metadata)
 
 # set the value of h
@@ -47,9 +47,9 @@ fig = plt.figure()
 l, = plt.plot([], [], 'k-.')
 plt.xlim(-Lplot/2,Lplot/2)
 
-kernelmat = np.load('kernelmat2.npy')
+kernelmat = np.load('kernelmat1.npy')
 
-with writer.saving(fig, "levysde2.mp4", 101):
+with writer.saving(fig, "levysde1.mp4", 101):
     pdf = initp(xplot)
     l.set_data(xplot, pdf)
     plt.ylim(-1.0e-4,np.max(pdf)*1.1)

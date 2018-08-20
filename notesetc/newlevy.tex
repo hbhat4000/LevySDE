@@ -107,7 +107,7 @@ By (\ref{eqn:CFdefn}), we know that
 \]
 Hence (\ref{eqn:consprob}) is conservation of probability.  As long as our initial characteristic function satisfies $\psi_0(0) = 1$, all subsequent characteristic functions will preserve this property exactly.
 
-To begin, we split the domain of integration:
+In what follows, we assume $s \neq 0$.  We split the domain of integration:
 \begin{multline*}
 K(s,u) = \frac{1}{2 \pi} \int_{y=-\infty}^{-L/2} e^{is\left(y+f(y)h\right)}\exp{\left(  -h |s g(y)|^{\alpha} \right)}e^{-iuy}\, dy \\
  + \frac{1}{2 \pi} \int_{y=-L/2}^{L/2} e^{is\left(y+f(y)h\right)}\exp{\left(  -h |s g(y)|^{\alpha} \right)}e^{-iuy}\, dy \\
@@ -137,7 +137,7 @@ m_1(y_j) = \int_{y_j}^{y_{j+1}} y e^{i k y} \, dy = \begin{cases} \frac{1}{2} (y
 \]
 Equipped with the quadrature rule, we set
 \[
-\phi(x) = \exp \left[ h (i s f(x) - |s|^\alpha g(x)) \right]
+\phi(x) = \exp \left[ h (i s f(x) - |s g(x) |^\alpha ) \right]
 \]
 and complete the calculation:
 \begin{align}
@@ -154,15 +154,15 @@ As a first problem, suppose that $\alpha = 1$ and
 f(x) = \tan^{-1} x \\
 g(x) = \sqrt{1 + x^2}
 \end{gather*}
-For $L$ sufficiently large, we have
+We have
 \[
 f(x) \approx \pm \pi/2, \text{ as } x \to \pm \infty, \text{ respectively,}
 \]
 and
 \[
-g(x) \approx |x|.
+g(x) \approx |x|, \text{ as } |x| \to \infty.
 \]
-Using these approximations, we obtain
+We assume $L$ is sufficiently large and apply these approximations:
 \begin{multline*}
 \frac{1}{2 \pi} \int_{y=-\infty}^{-L/2} e^{is\left(y+f(y)h\right)}\exp{\left(  -h |s g(y)|^{\alpha} \right)}e^{-iuy}\, dy \approx \frac{1}{2 \pi} \int_{y=-\infty}^{-L/2} e^{i(s-u)y} e^{-i s h \pi/2} e^{h |s| y} \, dy \\
  = - \frac{i}{2 \pi} \frac{\exp \left( - (i/2)(h \pi s + L(s-u)) - (1/2)(h L |s|) \right)}{s - u - i h |s|}
