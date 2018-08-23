@@ -179,7 +179,37 @@ The two asymptotic contributions are complex conjugates of one another---due to 
 \end{equation}
 as the total asymptotic contribution.
 
+\paragraph{Brief Bit of Analysis.} Given any random variable $X$ with density $p(x)$, we can define the characteristic function as the Fourier transform:
+\[
+\psi(s) = \int_{x=-\infty}^\infty e^{i s x} p(x) \, dx.
+\]
+Hence
+\[
+\| \psi(s) \| = \left| \int_{x=-\infty}^\infty e^{i s x} p(x) \, dx. \right| \leq \int_{x=-\infty}^\infty p(x) \, dx = 1.
+\]
+because $|e^{i s x}| = 1$ and $p(x) \geq 0$.  Note that $\psi(0) = 1$, and so $\|\psi \|_\infty = 1$.
+
+Now suppose in our algorithm that $\| \psi_n \|_\infty = 1$.  Then we have
+\begin{align*}
+\| \psi_{n+1} (s) \| &= \left| \int_u K(s,u) \psi_n(u) \, du \right| \\
+ &\leq \int_u |K(s,u)| |\psi_n(u)| \, du \\
+ &\leq \int_u |K(s,u)| \, du.
+\end{align*}
+Hence in order for $\| \psi_{n+1}(s) \| \leq 1$, it is sufficient that
+\[
+\leq \int_u |K(s,u)| \, du \leq 1.
+\]
+After computing $K(s,u)$ numerically, it is easy to check this condition.  Typically, we form a matrix $\kappa$ by setting $\kappa_{ij} = K(s_i, u_j)$.  One numerical approximation of the above sufficient condition is then
+\[
+\sum_{j} |\kappa_{ij}| (\Delta u) \leq 1
+\]
+or
+\[
+\| \kappa \|_\infty \leq (\Delta u)^{-1}.
+\]
+
 \paragraph{Physical Space and the Fractional Fokker-Planck.}
+
 
 \end{document}
 
