@@ -9,11 +9,11 @@
 
 \begin{document}
 \begin{center}
-\textbf{Characteristic Function Evolution for Levy SDE}\\
+\textbf{Characteristic Function Evolution for L\'{e}vy SDE}\\
 Harish S. Bhat and Arnold D. Kim, 2018
 \end{center}
 
-\paragraph{Problem Statement.} Let $L_t^{\alpha}$ denote an $\alpha$-stable Levy processes, i.e., a process such that:
+\paragraph{Problem Statement.} Let $L_t^{\alpha}$ denote an $\alpha$-stable L\'{e}vy processes, i.e., a process such that:
 \begin{enumerate}
 \item $L_0^\alpha = 0$ almost surely,
 \item $L_t^\alpha$ has independent increments, and
@@ -189,13 +189,13 @@ Hence
 \]
 because $|e^{i s x}| = 1$ and $p(x) \geq 0$.  Note that $\psi(0) = 1$, and so $\|\psi \|_\infty = 1$.
 
-Now suppose in our algorithm that $\| \psi_n \|_\infty = 1$.  Then we have
+\noindent Now suppose that $\| \psi_n \|_\infty = 1$.  Then we have
 \begin{align*}
 \| \psi_{n+1} (s) \| &= \left| \int_u K(s,u) \psi_n(u) \, du \right| \\
  &\leq \int_u |K(s,u)| |\psi_n(u)| \, du \\
  &\leq \int_u |K(s,u)| \, du.
 \end{align*}
-Hence in order for $\| \psi_{n+1}(s) \| \leq 1$, it is sufficient that
+Hence in order to guarantee $\| \psi_{n+1}(s) \| \leq 1$, it is sufficient that
 \[
 \leq \int_u |K(s,u)| \, du \leq 1.
 \]
@@ -208,8 +208,84 @@ or
 \| \kappa \|_\infty \leq (\Delta u)^{-1}.
 \]
 
-\paragraph{Physical Space and the Fractional Fokker-Planck.}
+\paragraph{Another Way of Looking At Things.}
+Let's reexamine $K$:
+\[
+K(s,u) = \frac{1}{2\pi}\int_{y=-\infty}^{\infty}e^{i (s-u) y} \exp{\left( h [ i s f(y) - |s g(y)|^\alpha ] \right)} \, dy.
+\]
+Now expand in $h$ about $h=0$:
+\[
+K(s,u) = \frac{1}{2 \pi} \int_{y=-\infty}^\infty e^{i (s-u) y} (1 + h [ i s f(y) - |s g(y) |^\alpha ]  + O(h^2) ) \, dy
+\]
+We can go a bit further:
+\[
+K(s,u) = \delta(s-u) + \frac{h i s}{2 \pi} \int_{y=-\infty}^\infty e^{i (s-u) y} f(y) \, dy - \frac{ h |s|^\alpha }{2 \pi} \int_{y=-\infty}^\infty e^{i (s-u) y} |g(y)|^\alpha \, dy + O(h^2)
+\]
+If we let $\widehat{f}$ and $\widehat{|g|^\alpha}$ denote Fourier transforms of the respective functions, then we have
+\[
+K(s,u) = \delta(s-u) + h i s \widehat{f}(s-u) - h |s|^\alpha \widehat{|g|^\alpha}(s-u) + O(h^2)
+\]
+Now we insert this into the integral (\ref{eqn:ctq}) and obtain
+\[
+\psi_{n+1}(s) = \psi_n(s) + h i s \int_{u=-\infty}^\infty \widehat{f}(s-u) \psi_n(u) \, du - h |s|^\alpha \int_{u=-\infty}^\infty \widehat{|g|^\alpha}(s-u) \psi_n(u) \, du + O(h^2)
+\]
+Now we move $\psi_n(s)$ to the left-hand side and write
+\[
+\psi(s, n \Delta t) \approx \psi_n(s)
+\]
+where the $\psi$ on the left-hand side is the continuum limit in time of the discrete snapshots $\psi_n(s)$.  Then dividing through by $h$ and sending $h \to 0$, we derive
+\begin{equation}
+\label{eqn:psicontevol}
+\frac{\partial \psi}{\partial t} (s,t) = i s \int_{u=-\infty}^\infty  \widehat{f}(s-u) \psi(u,t) \, du - |s|^\alpha \int_{u=-\infty}^\infty \widehat{|g|^\alpha}(s-u) \psi(u,t) \, du
+\end{equation}
+Maybe this integrodifferential equation is at the heart of what we are doing?  For the particular case of $\alpha = 1$, $f(y) = \tan^{-1} y$ and $g(y) = \sqrt{1+y^2}$, we obtain
+\[
+\frac{\partial \psi}{\partial t} (s,t) = - \frac{s}{2} \int_{-\infty}^\infty \frac{e^{-|s-u|}}{s-u} \psi_n(u) \, du - \frac{|s|}{\pi} \int_{-\infty}^\infty \frac{K_1(|s-u|)}{|s-u|} \psi_n(u) \, du
+\]
+where $K_1(z)$ is the modified Bessel function of the second kind.  It seems like there are unavoidable singularities here.
 
+\paragraph{Fractional Fokker-Planck!}  If we write the inversion formula
+\[
+p(y,t) = \frac{1}{2 \pi} \int_{-\infty}^\infty e^{-i u y} \psi(u,t) \, du
+\]
+and then differentiate with respect to $y$ on both sides, we will derive
+\[
+\frac{\partial}{\partial y} p(y,t) = \frac{1}{2 \pi} \int_{-\infty}^\infty e^{-i u y} (-i u) \psi(u,t) \, du.
+\]
+More generally, we can \emph{define} a fractional derivative of $p$ via the formula
+\[
+\frac{\partial^\alpha }{\partial |y|^\alpha} p(y,t) = \frac{1}{2 \pi} \int_{-\infty}^\infty e^{-i u y} (- |u|^\alpha ) \psi(u,t) \, du.
+\]
+If we use this formula with $\alpha=2$, we recover a familiar statement:
+\[
+\frac{\partial^2}{\partial y^2} p(y,t) = \frac{1}{2 \pi} \int_{-\infty}^\infty e^{- i u y} (-u^2) \psi(u,t) \, du.
+\]
+In other words, the choice of signs in the fractional derivative definition matches $(-i u)^2 = -u^2 = -|u|^2)$.
+Now using the above to take the inverse Fourier transform of (\ref{eqn:psicontevol}), and using the convolution theorem, we derive
+\begin{equation}
+\label{eqn:fracfp}
+\frac{\partial p}{\partial t}(y,t) = -\frac{\partial}{\partial y} \bigl[ f(y) p(y,t) \bigr] + \frac{\partial^\alpha}{\partial |y|^\alpha} \bigl[ |g(y)|^\alpha p(y,t) \bigr].
+\end{equation}
+When $\alpha=2$, this is the classical Fokker-Planck PDE, modulo a factor of $1/2$ on the diffusion term.  This missing factor of $1/2$ is due to the fact that when $\alpha=2$, the characteristic function of the L\'{e}vy increment---defined in (\ref{eqn:emchar})---becomes $\exp(-h s^2)$, whereas for SDE driven by Brownian motion we (canonically) define the characteristic function of the increment to be $\exp(-h s^2/2)$.
+
+\paragraph{Back to Physical Space?} My original idea was to evolve characteristic functions because they decay exponentially even for fat-tailed distributions like the Cauchy.  But what if we try to evolve the PDF instead?  Suppose we write the time-advanced version of (\ref{eqn:inverseFT}):
+\[
+\widetilde{p}(x, t_{n+1}) = \frac{1}{2\pi}\int_{u=-\infty}^{\infty}e^{-iux}\psi_{n+1}(u)\, du
+\]
+We can then combine this with (\ref{eqn:CFupdate}) to derive
+\[
+\widetilde{p}(x, t_{n+1}) = \frac{1}{2 \pi} \int_{u=-\infty}^\infty e^{-i u x} 
+\int_{y=-\infty}^{\infty}e^{iu\left(y+f(y)h\right)}\exp{\left(  -h |u g(y)|^{\alpha} \right)}\widetilde{p}(y, t_n) \, dy \, du.
+\]
+Let us define
+\[
+\mathcal{K}(x,y) = \frac{1}{2 \pi} \int_{u=-\infty}^\infty e^{-i u x} e^{iu\left(y+f(y)h\right)}\exp{\left(  -h |u g(y)|^{\alpha} \right)} \, du.
+\]
+Then the update equation becomes
+\[
+\widetilde{p}(x,t_{n+1}) = \int_{y=-\infty}^\infty \mathcal{K}(x,y) \widetilde{p}(y, t_n) \, dy.
+\]
+Maybe this will avoid singularities?
 
 \end{document}
 
