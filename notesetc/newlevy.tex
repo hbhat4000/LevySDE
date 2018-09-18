@@ -149,7 +149,8 @@ and complete the calculation:
 
 \paragraph{Asymptotics.} We now turn to the integrals over the unbounded domains $(-\infty, -L/2)$ and $(L/2, +\infty)$. Our strategy will be to use asymptotic approximations of $f$ and $g$ to compute the integrals. We will explain this strategy be example.
 
-As a first problem, suppose that $\alpha = 1$ and
+\begin{enumerate}
+\item Suppose that $\alpha = 1$ and
 \begin{gather*}
 f(x) = \tan^{-1} x \\
 g(x) = \sqrt{1 + x^2}
@@ -178,6 +179,62 @@ The two asymptotic contributions are complex conjugates of one another---due to 
 \Re \left[ \frac{i}{\pi} \frac{\exp \left( (i/2)(h \pi s + L(s-u)) - (1/2)(h L |s|) \right)}{s - u + i h |s|} \right]
 \end{equation}
 as the total asymptotic contribution.
+\item Suppose that $\alpha = 1$ and
+\begin{gather*}
+f(x) = \tan^{-1} x \\
+g(x) = g > 0
+\end{gather*}
+We apply the same approximation for $f$ as above.  This yields
+\begin{multline*}
+\frac{1}{2 \pi} \int_{y=-\infty}^{-L/2} e^{is\left(y+f(y)h\right)}\exp{\left(  -h |s g(y)|^{\alpha} \right)}e^{-iuy}\, dy \approx \frac{1}{2 \pi} \int_{y=-\infty}^{-L/2} e^{i(s-u)y} e^{-i s h \pi/2} e^{-h |s| g} \, dy \\
+ = e^{-i s h \pi/2} e^{-h |s| g} \left( \frac{ e^{-iL (s-u)/2} }{2 \pi i (s-u)} + \frac{1}{2} \delta(s-u) \right)
+\end{multline*}
+and
+\begin{multline*}
+\frac{1}{2 \pi} \int_{y=L/2}^{\infty} e^{is\left(y+f(y)h\right)}\exp{\left(  -h |s g(y)|^{\alpha} \right)}e^{-iuy}\, dy \approx \frac{1}{2 \pi} \int_{y=L/2}^{\infty} e^{i(s-u)y} e^{i s h \pi/2} e^{-h |s| g} \, dy \\
+ = e^{i s h \pi/2} e^{-h |s| g} \left( -\frac{ e^{iL (s-u)/2} }{2 \pi i (s-u)} + \frac{1}{2} \delta(s-u) \right)
+\end{multline*}
+Putting these two contributions together, we obtain
+$$
+e^{-h |s| g} \left( \cos(s h \pi/2) \delta(s-u) - \frac{ \sin(L(s-u)/2 + s h \pi/2) }{ \pi (s-u) } \right).
+$$
+Note: I am perfectly happy to integrate the Dirac delta against $\psi_n(u)$, but I am not entirely sure how to compute the integral of the second part against $\psi_n(u)$.  Even if I interpret $1/(s-u)$ as a distribution---using Cauchy principal value---it is not clear how to evaluate $\int_u (1/(s-u)) \psi_n(u) \, du$.
+\item The above two examples are hard ones.  Let us try to find a general class of examples that are both useful and more immediately compatible with our method.  Suppose we have a potential $V(x)$---here we think of harmonic or anharmonic, single- or multiple-well potentials.  Then we can define
+$$
+f(x) = -\frac{dV}{dx}.
+$$
+Suppose that the potential saturates for large arguments, i.e., for $|x| \geq L/2$, we have
+$$
+V(x) = C.
+$$
+This will imply that for $|x| \geq L/2$,
+$$
+f(x) = 0.
+$$
+Further assume that the diffusion coefficient is constant, i.e.,
+$$
+g(x) = g > 0.
+$$
+Then the asymptotic contributions will be:
+\begin{multline*}
+\frac{1}{2 \pi} \int_{y=-\infty}^{-L/2} e^{is\left(y+f(y)h\right)}\exp{\left(  -h |s g(y)|^{\alpha} \right)}e^{-iuy}\, dy \approx \frac{1}{2 \pi} \int_{y=-\infty}^{-L/2} e^{i(s-u)y} e^{-h |s|^\alpha g^\alpha} \, dy \\
+ =  e^{-h |s|^\alpha g^\alpha} \left( \frac{ e^{-iL (s-u)/2} }{2 \pi i (s-u)} + \frac{1}{2} \delta(s-u) \right)
+\end{multline*}
+and
+\begin{multline*}
+\frac{1}{2 \pi} \int_{y=L/2}^{\infty} e^{is\left(y+f(y)h\right)}\exp{\left(  -h |s g(y)|^{\alpha} \right)}e^{-iuy}\, dy \approx \frac{1}{2 \pi} \int_{y=L/2}^{\infty} e^{i(s-u)y} e^{-h |s|^\alpha g^\alpha} \, dy \\
+ = e^{-h |s|^\alpha g^\alpha} \left( -\frac{ e^{iL (s-u)/2} }{2 \pi i (s-u)} + \frac{1}{2} \delta(s-u) \right)
+\end{multline*}
+Putting the two together, we obtain
+$$
+e^{-h |s|^\alpha g^\alpha} \left( \delta(s-u) - \frac{\sin (L(s-u)/2)}{\pi (s-u)} \right).
+$$
+It is easy to see how we can integrate this against $\psi_n(u)$.  We take care of the Dirac delta using pencil and paper.  As for the remaining function, it is equivalent to
+$$
+\frac{L}{2 \pi} \operatorname{sinc} \left[ \frac{L}{2} (s-u) \right],
+$$
+a smooth function with no singularities.  The integral of this function against $\psi_n(u)$ is a convolution integral.  Convolution of the characteristic function with the sinc function is equivalent to multiplying the PDF by a rectangular, low-pass filter.
+\end{enumerate}
 
 \paragraph{Brief Bit of Analysis.} Given any random variable $X$ with density $p(x)$, we can define the characteristic function as the Fourier transform:
 \[
