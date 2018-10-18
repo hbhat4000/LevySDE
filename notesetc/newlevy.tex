@@ -35,6 +35,20 @@ Let $p(x,t)$ denote the probability density function (PDF) of $X_t$---note that 
 \emph{Suppose that $p(x,0)$ is given.  Our goal is to compute $p(x,t)$ for $t > 0$.}
 \end{quote}
 
+\paragraph{Brief Review of Characteristic Functions.} Given any random variable $X$ with density $p(x)$, we can define the characteristic function as the Fourier transform:
+\[
+\psi(s) = \int_{x=-\infty}^\infty e^{i s x} p(x) \, dx.
+\]
+Note that
+\[
+\psi(0) = \int_{x=-\infty}^\infty p(x) \, dx = 1.
+\]
+Using $|e^{i s x}| = 1$ and $p(x) \geq 0$, we have
+\[
+\| \psi(s) \| = \left| \int_{x=-\infty}^\infty e^{i s x} p(x) \, dx. \right| \leq \int_{x=-\infty}^\infty p(x) \, dx = 1,
+\]
+Because $\psi(0) = 1$, we see that $\|\psi \|_\infty = 1$.
+
 \paragraph{Derivation of Method (Temporal Discretization).} To derive our method, we first discretize (\ref{eqn:sde}) in time via Euler-Maruyama with step $h > 0$:
 \begin{equation}
 \label{eqn:em}
@@ -78,40 +92,66 @@ from (\ref{eqn:CFupdate}) we get
 \begin{equation}
 \psi_{n+1}(s) =  \int_{u=-\infty}^{\infty}\left[\frac{1}{2\pi}\int_{y=-\infty}^{\infty}e^{is\left(y+f(y)h\right)}\exp{\left(  -h |s g(y)|^{\alpha} \right)}e^{-iuy}\, dy \right]\psi_{n}(u) \, du.\nonumber
 \end{equation}
-Let
+Defining
 \[
-K(s,u) = \frac{1}{2\pi}\int_{y=-\infty}^{\infty}e^{is\left(y+f(y)h\right)}\exp{\left(  -h |s g(y)|^{\alpha} \right)}e^{-iuy}\, dy.
+\widetilde{K}(s,u) = \frac{1}{2\pi}\int_{y=-\infty}^{\infty}e^{is\left(y+f(y)h\right)}\exp{\left(  -h |s g(y)|^{\alpha} \right)}e^{-iuy}\, dy,
 \]
-and we get
+we get
 \begin{equation}
 \label{eqn:ctq}
-\psi_{n+1}(s) =  \int_{u=-\infty}^{\infty}K(s,u)\psi_{n}(u) \, du.
+\psi_{n+1}(s) =  \int_{u=-\infty}^{\infty}\widetilde{K}(s,u)\psi_{n}(u) \, du.
 \end{equation}
 \emph{Up to quadrature, (\ref{eqn:ctq}) is the algorithm.} By repeatedly applying (\ref{eqn:ctq}) we evolve the characteristic function forward in time.  If, at any point, we want to retrieve the PDF from the characteristic function, we use (\ref{eqn:inverseFT}).
 
-\paragraph{Numerical Analysis (Spatial Discretization).} The idea now is to spatially discretize both the characteristic function $\psi_0(s)$, the kernel $K(s,u)$, and the integral in (\ref{eqn:ctq}).   Numerical evaluation of the kernel is the most expensive and critical part, and so we focus on that first.
+\paragraph{Collocation.} Any method to evaluate (\ref{eqn:ctq}) will require spatial discretization, i.e., a finite-dimensional approximation of $\psi_n$.  We have investigated thoroughly a trapezoidal discretization of the integral, using both equispaced and non-equispaced grids.  Such approaches suffer from the problem that for $|u| \neq 0$ sufficiently small, $|\psi_n(u)| > 1$, a fatal issue.
 
-Before doing any numerical computation, we first note that the kernel is singular at $s=0$:
+Let us consider a collocation method in which we approximate $\psi_n$ using a mixture of Gaussians:
 \begin{equation}
-\label{eqn:s0}
-K(0,u) = \frac{1}{2 \pi} \int_{y=-\infty}^\infty e^{-i u y} \, dy = \delta(u).
+\label{eqn:gaussmix}
+\psi_n(u) \approx \sum_{m=-M}^{m=M} \gamma^n_m \exp \left( \frac{-(u - u_m)^2}{\zeta} \right)
 \end{equation}
-If we now use this result in (\ref{eqn:ctq}), we obtain
+Here we take $u_m = m \Delta u$ for some $\Delta u > 0$.  There is a compatibility condition between $\Delta u$ and the parameter $\zeta > 0$---the Gaussians must overlap not too little and not too much.  (TODO: make this precise!)  Note that the normalization condition $\psi_n(0) = 1$ turns into
 \begin{equation}
-\label{eqn:consprob}
-\psi_{n+1}(0) = \int_{u=-\infty}^\infty \delta(u) \psi_n(u) \, dy = \psi_n(0).
+\label{eqn:collocnorm}
+\sum_{m=-M}^{m=M} \gamma^n_m \exp \left( \frac{-u_m^2}{\zeta} \right) = 1
 \end{equation}
-By (\ref{eqn:CFdefn}), we know that
-\[
-\psi_n(0) = \int_{x=-\infty}^\infty \widetilde{p}(x,t_n) \, dx.
-\]
-Hence (\ref{eqn:consprob}) is conservation of probability.  As long as our initial characteristic function satisfies $\psi_0(0) = 1$, all subsequent characteristic functions will preserve this property exactly.
+We now use (\ref{eqn:gaussmix}) in (\ref{eqn:ctq}) to obtain
+\begin{equation}
+\label{eqn:ctqcolloc}
+\sum_{\ell=-M}^{\ell=M} \gamma^{n+1}_{\ell} \exp \left( \frac{-(s - u_{\ell})^2}{\zeta} \right) = \int_{u=-\infty}^{\infty} \widetilde{K}(s,u) \sum_{m=-M}^{m=M} \gamma^n_m \exp \left( \frac{-(u - u_m)^2}{\zeta} \right) \, du.
+\end{equation}
+Using the definition of $\widetilde{K}$, we see that
+\begin{multline}
+\label{eqn:Kdef}
+K(s, u_m) = \int_{u=-\infty}^{\infty} \widetilde{K}(s,u) \exp \left( \frac{-(u - u_m)^2}{\zeta} \right) \, du \\
+= \frac{1}{2 \pi} \int_{y=-\infty}^\infty e^{i s (y + f(y) h) } \exp(-h |s g(y)|^\alpha) \int_{u=-\infty}^\infty e^{-i u y} \left( \frac{-(u - u_m)^2}{\zeta} \right) \, du \, dy \\
+= \frac{\sqrt{\zeta}}{2 \sqrt{\pi}} \int_{y=-\infty}^\infty e^{i s (y + f(y) h) } \exp(-h |s g(y)|^\alpha -y^2 \zeta/4) e^{-i u_m y} \, dy
+\end{multline}
+We have carried out the integral over $u$ exactly.  Using this in (\ref{eqn:ctqcolloc}), we have
+\begin{equation}
+\label{eqn:ctqcolloc2}
+\sum_{m'=-M}^{m'=M} \gamma^{n+1}_{m'} \exp \left( \frac{-(s - u_{m'})^2}{\zeta} \right) = \sum_{m=-M}^{m=M} K(s,u_m) \gamma^n_m
+\end{equation}
+We enforce this equality at the $2M+1$ points $s = u_{\ell}$ for $-M \leq \ell \leq M$.  Let
+$$
+C_{\ell, m} = \exp \left( \frac{-(u_{\ell} - u_{m})^2}{\zeta} \right).
+$$
+Similarly, let us write
+$$
+K_{\ell, m} = K(u_{\ell}, u_m).
+$$
+Then $C$ and $K$ are $(2M+1) \times (2M+1)$ matrices.  The update equation (\ref{eqn:ctqcolloc2}) becomes
+\begin{equation}
+\label{eqn:collocupdate}
+\gamma^{n+1} = C^{-1} K \gamma^n.
+\end{equation}
 
-In what follows, we assume $s \neq 0$.  We split the domain of integration:
+
+\paragraph{Numerical Analysis (Spatial Discretization).} The idea now is to compute $\widetilde{K}(s,u)$.  We split the domain of integration:
 \begin{multline*}
-K(s,u) = \frac{1}{2 \pi} \int_{y=-\infty}^{-L/2} e^{is\left(y+f(y)h\right)}\exp{\left(  -h |s g(y)|^{\alpha} \right)}e^{-iuy}\, dy \\
- + \frac{1}{2 \pi} \int_{y=-L/2}^{L/2} e^{is\left(y+f(y)h\right)}\exp{\left(  -h |s g(y)|^{\alpha} \right)}e^{-iuy}\, dy \\
- + \frac{1}{2 \pi} \int_{y=L/2}^{\infty} e^{is\left(y+f(y)h\right)}\exp{\left(  -h |s g(y)|^{\alpha} \right)}e^{-iuy}\, dy
+K(s,u) = \frac{1}{2 \pi} \int_{y=-\infty}^{-L/2} e^{is\left(y+f(y)h\right)}\exp{\left(  -h |s g(y)|^{\alpha} -y^2 \zeta/4 \right)}e^{-iuy}\, dy \\
+ + \frac{1}{2 \pi} \int_{y=-L/2}^{L/2} e^{is\left(y+f(y)h\right)}\exp{\left(  -h |s g(y)|^{\alpha} -y^2 \zeta/4 \right)}e^{-iuy}\, dy \\
+ + \frac{1}{2 \pi} \int_{y=L/2}^{\infty} e^{is\left(y+f(y)h\right)}\exp{\left(  -h |s g(y)|^{\alpha} -y^2 \zeta/4 \right)}e^{-iuy}\, dy
 \end{multline*}
 The inner integral over the finite domain $[-L/2, L/2]$ is the one we will compute using a quadrature rule.  We set up an equispaced grid with $N > 0$ grid points.  Then $\Delta y = L/N$ and $y_j = -L/2 + (\Delta y) j$ for $j = 0, 1, 2, \ldots, N-1$.  The inner integral then becomes a sum of terms of the form
 \[
@@ -137,217 +177,56 @@ m_1(y_j) = \int_{y_j}^{y_{j+1}} y e^{i k y} \, dy = \begin{cases} \frac{1}{2} (y
 \]
 Equipped with the quadrature rule, we set
 \[
-\phi(x) = \exp \left[ h (i s f(x) - |s g(x) |^\alpha ) \right]
+\phi(x) = \exp \left[ h (i s f(x) - |s g(x) |^\alpha) -x^2 \zeta/4  \right]
 \]
 and complete the calculation:
 \begin{align}
-\frac{1}{2 \pi} \int_{y=-L/2}^{L/2} & e^{is\left(y+f(y)h\right)}\exp{\left(  -h |s g(y)|^{\alpha} \right)}e^{-iuy}\, dy \nonumber \\
+\frac{1}{2 \pi} \int_{y=-L/2}^{L/2} & e^{is\left(y+f(y)h\right)}\exp{\left(  -h |s g(y)|^{\alpha} -y^2 \zeta/4 \right)}e^{-iuy}\, dy \nonumber \\
 &= \frac{1}{2 \pi} \sum_{j=0}^{N-1} \int_{y_j}^{y_{j+1}} e^{i (s-u) y} \phi(y) \, dy \nonumber \\
 \label{eqn:quadcalc}
 &\approx \frac{1}{2 \pi} \sum_{j=0}^{N-1} \frac{m_1(y_j) - y_j m_0(y_j)}{\Delta y} \phi(y_j + \Delta y) - \frac{m_1(y_j) - y_{j+1} m_0(y_j)}{\Delta y} \phi(y_j).
 \end{align}
 
-\paragraph{Asymptotics.} We now turn to the integrals over the unbounded domains $(-\infty, -L/2)$ and $(L/2, +\infty)$. Our strategy will be to use asymptotic approximations of $f$ and $g$ to compute the integrals. We will explain this strategy be example.
+\paragraph{Asymptotics.} We now turn to the integrals over the unbounded domains $(-\infty, -L/2)$ and $(L/2, +\infty)$. Our strategy will be to use asymptotic approximations of $f$ and $g$ to compute the integrals. We will explain this strategy by example.
 
-\begin{enumerate}
-\item Suppose that $\alpha = 1$ and
-\begin{gather*}
-f(x) = \tan^{-1} x \\
-g(x) = \sqrt{1 + x^2}
-\end{gather*}
-We have
-\[
-f(x) \approx \pm \pi/2, \text{ as } x \to \pm \infty, \text{ respectively,}
-\]
-and
-\[
-g(x) \approx |x|, \text{ as } |x| \to \infty.
-\]
-We assume $L$ is sufficiently large and apply these approximations:
-\begin{multline*}
-\frac{1}{2 \pi} \int_{y=-\infty}^{-L/2} e^{is\left(y+f(y)h\right)}\exp{\left(  -h |s g(y)|^{\alpha} \right)}e^{-iuy}\, dy \approx \frac{1}{2 \pi} \int_{y=-\infty}^{-L/2} e^{i(s-u)y} e^{-i s h \pi/2} e^{h |s| y} \, dy \\
- = - \frac{i}{2 \pi} \frac{\exp \left( - (i/2)(h \pi s + L(s-u)) - (1/2)(h L |s|) \right)}{s - u - i h |s|}
-\end{multline*}
-and
-\begin{multline*}
-\int_{y=L/2}^{\infty} e^{is\left(y+f(y)h\right)}\exp{\left(  -h |s g(y)|^{\alpha} \right)}e^{-iuy}\, dy \approx \int_{y=L/2}^{\infty} e^{i(s-u)y} e^{i s h \pi/2} e^{-h |s| y} \, dy \\
- = \frac{i}{2 \pi} \frac{\exp \left( (i/2)(h \pi s + L(s-u)) - (1/2)(h L |s|) \right)}{s - u + i h |s|}.
-\end{multline*}
-The two asymptotic contributions are complex conjugates of one another---due to the symmetries of $f$ and $g$---and hence we obtain
-\begin{equation}
-\label{eqn:asympcalc}
-\Re \left[ \frac{i}{\pi} \frac{\exp \left( (i/2)(h \pi s + L(s-u)) - (1/2)(h L |s|) \right)}{s - u + i h |s|} \right]
-\end{equation}
-as the total asymptotic contribution.
-\item Suppose that $\alpha = 1$ and
-\begin{gather*}
-f(x) = \tan^{-1} x \\
-g(x) = g > 0
-\end{gather*}
-We apply the same approximation for $f$ as above.  This yields
-\begin{multline*}
-\frac{1}{2 \pi} \int_{y=-\infty}^{-L/2} e^{is\left(y+f(y)h\right)}\exp{\left(  -h |s g(y)|^{\alpha} \right)}e^{-iuy}\, dy \approx \frac{1}{2 \pi} \int_{y=-\infty}^{-L/2} e^{i(s-u)y} e^{-i s h \pi/2} e^{-h |s| g} \, dy \\
- = e^{-i s h \pi/2} e^{-h |s| g} \left( \frac{ e^{-iL (s-u)/2} }{2 \pi i (s-u)} + \frac{1}{2} \delta(s-u) \right)
-\end{multline*}
-and
-\begin{multline*}
-\frac{1}{2 \pi} \int_{y=L/2}^{\infty} e^{is\left(y+f(y)h\right)}\exp{\left(  -h |s g(y)|^{\alpha} \right)}e^{-iuy}\, dy \approx \frac{1}{2 \pi} \int_{y=L/2}^{\infty} e^{i(s-u)y} e^{i s h \pi/2} e^{-h |s| g} \, dy \\
- = e^{i s h \pi/2} e^{-h |s| g} \left( -\frac{ e^{iL (s-u)/2} }{2 \pi i (s-u)} + \frac{1}{2} \delta(s-u) \right)
-\end{multline*}
-Putting these two contributions together, we obtain
-$$
-e^{-h |s| g} \left( \cos(s h \pi/2) \delta(s-u) - \frac{ \sin(L(s-u)/2 + s h \pi/2) }{ \pi (s-u) } \right).
-$$
-Note: I am perfectly happy to integrate the Dirac delta against $\psi_n(u)$, but I am not entirely sure how to compute the integral of the second part against $\psi_n(u)$.  Even if I interpret $1/(s-u)$ as a distribution---using Cauchy principal value---it is not clear how to evaluate $\int_u (1/(s-u)) \psi_n(u) \, du$.
-\item The above two examples are hard ones.  Let us try to find a general class of examples that are both useful and more immediately compatible with our method.  Suppose we have a potential $V(x)$---here we think of harmonic or anharmonic, single- or multiple-well potentials.  Then we can define
+Suppose we have a potential $V(x)$---here we think of harmonic or anharmonic, single- or multiple-well potentials.  Then we can define
 $$
 f(x) = -\frac{dV}{dx}.
 $$
-Suppose that the potential saturates for large arguments, i.e., for $|x| \geq L/2$, we have
+Suppose that the potential is eventually linear, i.e., for $|x| \geq L/2$,
 $$
-V(x) = C.
+V(x) = C |x| + D.
 $$
-This will imply that for $|x| \geq L/2$,
+This implies that for $|x| \geq L/2$,
 $$
-f(x) = 0.
+f(x) = - C \operatorname{sgn}(x).
 $$
 Further assume that the diffusion coefficient is constant, i.e.,
 $$
 g(x) = g > 0.
 $$
+Let $\operatorname{erfc}$ be the complementary error function defined by
+\[
+\operatorname{erfc}(z) = 1 - \frac{2}{\sqrt{\pi}} \int_0^z e^{-t^2} \, dt.
+\]
 Then the asymptotic contributions will be:
-\begin{multline*}
-\frac{1}{2 \pi} \int_{y=-\infty}^{-L/2} e^{is\left(y+f(y)h\right)}\exp{\left(  -h |s g(y)|^{\alpha} \right)}e^{-iuy}\, dy \approx \frac{1}{2 \pi} \int_{y=-\infty}^{-L/2} e^{i(s-u)y} e^{-h |s|^\alpha g^\alpha} \, dy \\
- =  e^{-h |s|^\alpha g^\alpha} \left( \frac{ e^{-iL (s-u)/2} }{2 \pi i (s-u)} + \frac{1}{2} \delta(s-u) \right)
-\end{multline*}
+\begin{multline}
+\frac{1}{2 \pi} \int_{y=-\infty}^{-L/2} e^{is\left(y+f(y)h\right)}\exp{\left(  -h |s g(y)|^{\alpha} -y^2 \zeta/4  \right)}e^{-iuy}\, dy \\
+\approx \frac{1}{2 \pi} \int_{y=-\infty}^{-L/2} e^{i(s-u)y + i s C h} e^{-h |s|^\alpha g^\alpha -y^2 \zeta/4 } \, dy \\
+ =  ( 2 \sqrt{\pi \zeta} )^{-1} 
+ \exp \left( -h |s|^\alpha g^\alpha -\frac{(s-u)^2}{\zeta } + i s C h  \right) \operatorname{erfc}\left(\frac{\zeta  L-4 i (s-u)}{4 \sqrt{\zeta }}\right) 
+\end{multline}
 and
-\begin{multline*}
-\frac{1}{2 \pi} \int_{y=L/2}^{\infty} e^{is\left(y+f(y)h\right)}\exp{\left(  -h |s g(y)|^{\alpha} \right)}e^{-iuy}\, dy \approx \frac{1}{2 \pi} \int_{y=L/2}^{\infty} e^{i(s-u)y} e^{-h |s|^\alpha g^\alpha} \, dy \\
- = e^{-h |s|^\alpha g^\alpha} \left( -\frac{ e^{iL (s-u)/2} }{2 \pi i (s-u)} + \frac{1}{2} \delta(s-u) \right)
-\end{multline*}
-Putting the two together, we obtain
-$$
-e^{-h |s|^\alpha g^\alpha} \left( \delta(s-u) - \frac{\sin (L(s-u)/2)}{\pi (s-u)} \right).
-$$
-It is easy to see how we can integrate this against $\psi_n(u)$.  We take care of the Dirac delta using pencil and paper.  As for the remaining function, it is equivalent to
-$$
-\frac{L}{2 \pi} \operatorname{sinc} \left[ \frac{L}{2} (s-u) \right],
-$$
-a smooth function with no singularities.  The integral of this function against $\psi_n(u)$ is a convolution integral.  Convolution of the characteristic function with the sinc function is equivalent to multiplying the PDF by a rectangular, low-pass filter.
-\end{enumerate}
+\begin{multline}
+\frac{1}{2 \pi} \int_{y=L/2}^{\infty} e^{is\left(y+f(y)h\right)}\exp{\left(  -h |s g(y)|^{\alpha} -y^2 \zeta/4  \right)}e^{-iuy}\, dy \\
+\approx \frac{1}{2 \pi} \int_{y=L/2}^{\infty} e^{i(s-u)y - i s C h} e^{-h |s|^\alpha g^\alpha -y^2 \zeta/4 } \, dy \\
+ = ( 2 \sqrt{\pi \zeta} )^{-1} 
+ \exp \left( -h |s|^\alpha g^\alpha -\frac{(s-u)^2}{\zeta } - i s C h  \right) \operatorname{erfc}\left(\frac{\zeta  L + 4 i (s-u)}{4 \sqrt{\zeta }}\right)
+\end{multline}
 
-\paragraph{Brief Bit of Analysis.} Given any random variable $X$ with density $p(x)$, we can define the characteristic function as the Fourier transform:
-\[
-\psi(s) = \int_{x=-\infty}^\infty e^{i s x} p(x) \, dx.
-\]
-Hence
-\[
-\| \psi(s) \| = \left| \int_{x=-\infty}^\infty e^{i s x} p(x) \, dx. \right| \leq \int_{x=-\infty}^\infty p(x) \, dx = 1.
-\]
-because $|e^{i s x}| = 1$ and $p(x) \geq 0$.  Note that $\psi(0) = 1$, and so $\|\psi \|_\infty = 1$.
-
-\noindent Now suppose that $\| \psi_n \|_\infty = 1$.  Then we have
-\begin{align*}
-\| \psi_{n+1} (s) \| &= \left| \int_u K(s,u) \psi_n(u) \, du \right| \\
- &\leq \int_u |K(s,u)| |\psi_n(u)| \, du \\
- &\leq \int_u |K(s,u)| \, du.
-\end{align*}
-Hence in order to guarantee $\| \psi_{n+1}(s) \| \leq 1$, it is sufficient that
-\[
-\leq \int_u |K(s,u)| \, du \leq 1.
-\]
-After computing $K(s,u)$ numerically, it is easy to check this condition.  Typically, we form a matrix $\kappa$ by setting $\kappa_{ij} = K(s_i, u_j)$.  One numerical approximation of the above sufficient condition is then
-\[
-\sum_{j} |\kappa_{ij}| (\Delta u) \leq 1
-\]
-or
-\[
-\| \kappa \|_\infty \leq (\Delta u)^{-1}.
-\]
-
-\paragraph{Another Way of Looking At Things.}
-Let's reexamine $K$:
-\[
-K(s,u) = \frac{1}{2\pi}\int_{y=-\infty}^{\infty}e^{i (s-u) y} \exp{\left( h [ i s f(y) - |s g(y)|^\alpha ] \right)} \, dy.
-\]
-Now expand in $h$ about $h=0$:
-\[
-K(s,u) = \frac{1}{2 \pi} \int_{y=-\infty}^\infty e^{i (s-u) y} (1 + h [ i s f(y) - |s g(y) |^\alpha ]  + O(h^2) ) \, dy
-\]
-We can go a bit further:
-\[
-K(s,u) = \delta(s-u) + \frac{h i s}{2 \pi} \int_{y=-\infty}^\infty e^{i (s-u) y} f(y) \, dy - \frac{ h |s|^\alpha }{2 \pi} \int_{y=-\infty}^\infty e^{i (s-u) y} |g(y)|^\alpha \, dy + O(h^2)
-\]
-If we let $\widehat{f}$ and $\widehat{|g|^\alpha}$ denote Fourier transforms of the respective functions, then we have
-\[
-K(s,u) = \delta(s-u) + h i s \widehat{f}(s-u) - h |s|^\alpha \widehat{|g|^\alpha}(s-u) + O(h^2)
-\]
-Now we insert this into the integral (\ref{eqn:ctq}) and obtain
-\[
-\psi_{n+1}(s) = \psi_n(s) + h i s \int_{u=-\infty}^\infty \widehat{f}(s-u) \psi_n(u) \, du - h |s|^\alpha \int_{u=-\infty}^\infty \widehat{|g|^\alpha}(s-u) \psi_n(u) \, du + O(h^2)
-\]
-Now we move $\psi_n(s)$ to the left-hand side and write
-\[
-\psi(s, n \Delta t) \approx \psi_n(s)
-\]
-where the $\psi$ on the left-hand side is the continuum limit in time of the discrete snapshots $\psi_n(s)$.  Then dividing through by $h$ and sending $h \to 0$, we derive
-\begin{equation}
-\label{eqn:psicontevol}
-\frac{\partial \psi}{\partial t} (s,t) = i s \int_{u=-\infty}^\infty  \widehat{f}(s-u) \psi(u,t) \, du - |s|^\alpha \int_{u=-\infty}^\infty \widehat{|g|^\alpha}(s-u) \psi(u,t) \, du
-\end{equation}
-Maybe this integrodifferential equation is at the heart of what we are doing?  For the particular case of $\alpha = 1$, $f(y) = \tan^{-1} y$ and $g(y) = \sqrt{1+y^2}$, we obtain
-\[
-\frac{\partial \psi}{\partial t} (s,t) = - \frac{s}{2} \int_{-\infty}^\infty \frac{e^{-|s-u|}}{s-u} \psi_n(u) \, du - \frac{|s|}{\pi} \int_{-\infty}^\infty \frac{K_1(|s-u|)}{|s-u|} \psi_n(u) \, du
-\]
-where $K_1(z)$ is the modified Bessel function of the second kind.  It seems like there are unavoidable singularities here.
-
-\paragraph{Fractional Fokker-Planck!}  If we write the inversion formula
-\[
-p(y,t) = \frac{1}{2 \pi} \int_{-\infty}^\infty e^{-i u y} \psi(u,t) \, du
-\]
-and then differentiate with respect to $y$ on both sides, we will derive
-\[
-\frac{\partial}{\partial y} p(y,t) = \frac{1}{2 \pi} \int_{-\infty}^\infty e^{-i u y} (-i u) \psi(u,t) \, du.
-\]
-More generally, we can \emph{define} a fractional derivative of $p$ via the formula
-\[
-\frac{\partial^\alpha }{\partial |y|^\alpha} p(y,t) = \frac{1}{2 \pi} \int_{-\infty}^\infty e^{-i u y} (- |u|^\alpha ) \psi(u,t) \, du.
-\]
-If we use this formula with $\alpha=2$, we recover a familiar statement:
-\[
-\frac{\partial^2}{\partial y^2} p(y,t) = \frac{1}{2 \pi} \int_{-\infty}^\infty e^{- i u y} (-u^2) \psi(u,t) \, du.
-\]
-In other words, the choice of signs in the fractional derivative definition matches $(-i u)^2 = -u^2 = -|u|^2)$.
-Now using the above to take the inverse Fourier transform of (\ref{eqn:psicontevol}), and using the convolution theorem, we derive
-\begin{equation}
-\label{eqn:fracfp}
-\frac{\partial p}{\partial t}(y,t) = -\frac{\partial}{\partial y} \bigl[ f(y) p(y,t) \bigr] + \frac{\partial^\alpha}{\partial |y|^\alpha} \bigl[ |g(y)|^\alpha p(y,t) \bigr].
-\end{equation}
-When $\alpha=2$, this is the classical Fokker-Planck PDE, modulo a factor of $1/2$ on the diffusion term.  This missing factor of $1/2$ is due to the fact that when $\alpha=2$, the characteristic function of the L\'{e}vy increment---defined in (\ref{eqn:emchar})---becomes $\exp(-h s^2)$, whereas for SDE driven by Brownian motion we (canonically) define the characteristic function of the increment to be $\exp(-h s^2/2)$.
-
-\paragraph{Back to Physical Space?} My original idea was to evolve characteristic functions because they decay exponentially even for fat-tailed distributions like the Cauchy.  But what if we try to evolve the PDF instead?  Suppose we write the time-advanced version of (\ref{eqn:inverseFT}):
-\[
-\widetilde{p}(x, t_{n+1}) = \frac{1}{2\pi}\int_{u=-\infty}^{\infty}e^{-iux}\psi_{n+1}(u)\, du
-\]
-We can then combine this with (\ref{eqn:CFupdate}) to derive
-\[
-\widetilde{p}(x, t_{n+1}) = \frac{1}{2 \pi} \int_{u=-\infty}^\infty e^{-i u x} 
-\int_{y=-\infty}^{\infty}e^{iu\left(y+f(y)h\right)}\exp{\left(  -h |u g(y)|^{\alpha} \right)}\widetilde{p}(y, t_n) \, dy \, du.
-\]
-Let us define
-\[
-\mathcal{K}(x,y) = \frac{1}{2 \pi} \int_{u=-\infty}^\infty e^{-i u x} e^{iu\left(y+f(y)h\right)}\exp{\left(  -h |u g(y)|^{\alpha} \right)} \, du.
-\]
-Then the update equation becomes
-\[
-\widetilde{p}(x,t_{n+1}) = \int_{y=-\infty}^\infty \mathcal{K}(x,y) \widetilde{p}(y, t_n) \, dy.
-\]
-Maybe this will avoid singularities?
 
 \end{document}
 
-
-
-
+   
 
 
