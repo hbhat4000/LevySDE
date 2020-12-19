@@ -1,0 +1,322 @@
+\documentclass[12pt]{l4dc2021}
+
+% The following packages will be automatically loaded:
+% amsmath, amssymb, natbib, graphicx, url, algorithm2e
+
+\title[Parameter Estimation for L\'{e}vy SDE]{Parameter Estimation for L\'{e}vy Stochastic Differential Equations via Characteristic Function Evolution}
+\usepackage{times}
+% Use \Name{Author Name} to specify the name.
+% If the surname contains spaces, enclose the surname
+% in braces, e.g. \Name{John {Smith Jones}} similarly
+% if the name has a "von" part, e.g \Name{Jane {de Winter}}.
+% If the first letter in the forenames is a diacritic
+% enclose the diacritic in braces, e.g. \Name{{\'E}louise Smith}
+
+% Two authors with the same address
+% \coltauthor{\Name{Author Name1} \Email{abc@sample.com}\and
+%  \Name{Author Name2} \Email{xyz@sample.com}\\
+%  \addr Address}
+
+% Three or more authors with the same address:
+% \coltauthor{\Name{Author Name1} \Email{an1@sample.com}\\
+%  \Name{Author Name2} \Email{an2@sample.com}\\
+%  \Name{Author Name3} \Email{an3@sample.com}\\
+%  \addr Address}
+
+% Authors with different addresses:
+
+\author{\Name{Harish S. Bhat} \Email{hbhat@ucmerced.edu}\\
+ \Name{Arnold D. Kim} \Email{adkim@ucmerced.edu}\\
+ \addr Department of Applied Mathematics, University of California, Merced, Merced, CA 95343}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}%
+ An abstract would go here.%
+\end{abstract}
+
+\begin{keywords}%
+  List of keywords%
+\end{keywords}
+
+\section{Introduction}
+Let $L_t^{\alpha}$ denote an $\alpha$-stable L\'{e}vy processes, i.e., a process such that:
+\begin{enumerate}
+\item $L_0^\alpha = 0$ almost surely,
+\item $L_t^\alpha$ has independent increments, and
+\item For $t > s \geq 0$, $L_t^\alpha - L_s^\alpha \sim S_\alpha((t-s)^{1/\alpha},0,0)$.  That is, the increment over a time interval of length $t-s$ has an $\alpha$-stable distribution with scale parameter $\sigma = (t-s)^{1/\alpha}$, skewness parameter $\beta=0$, and location parameter $\mu=0$.  The characteristic function of this increment is:
+\begin{equation}
+\label{eqn:cfinc}
+E[\exp(i s (L_t^\alpha - L_s^\alpha))] = \exp(-(t-s) |s|^\alpha).
+\end{equation}
+\end{enumerate}
+
+\noindent Now consider the stochastic differential equation (SDE)
+\begin{equation}
+\label{eqn:sde}
+dX_t = f(X_t) dt + g(X_t) dL_t^{\alpha}.
+\end{equation}
+Let $p(x,t)$ denote the probability density function (PDF) of $X_t$---note that $p$ is the true PDF of the exact solution $X_t$ of the SDE.
+
+\begin{quote}
+\emph{Suppose that $p(x,0)$ is given.  Our goal is to compute $p(x,t)$ for $t > 0$.}
+\end{quote}
+
+\paragraph{Brief Review of Characteristic Functions.} Given any random variable $X$ with density $p(x)$, we can define the characteristic function as the Fourier transform:
+\[
+\psi(s) = \int_{x=-\infty}^\infty e^{i s x} p(x) \, dx.
+\]
+Note that
+\[
+\psi(0) = \int_{x=-\infty}^\infty p(x) \, dx = 1.
+\]
+Using $|e^{i s x}| = 1$ and $p(x) \geq 0$, we have
+\[
+\| \psi(s) \| = \left| \int_{x=-\infty}^\infty e^{i s x} p(x) \, dx. \right| \leq \int_{x=-\infty}^\infty p(x) \, dx = 1,
+\]
+Because $\psi(0) = 1$, we see that $\|\psi \|_\infty = 1$.
+
+\paragraph{Derivation of Method (Temporal Discretization).} To derive our method, we first discretize (\ref{eqn:sde}) in time via Euler-Maruyama with step $h > 0$:
+\begin{equation}
+\label{eqn:em}
+x_{n+1} = x_n + f(x_{n}) h + g(x_{n}) \Delta L_{n+1}^{\alpha},
+\end{equation}
+where $\Delta L_{n+1}^{\alpha}$ is independent of $x_n$ and has characteristic function
+\begin{equation}
+\label{eqn:emchar}
+\psi_{\Delta L^{\alpha}_{n+1}}(s) = \exp(- h |s|^\alpha).
+\end{equation}
+The drift $f$ and diffusion $g$ functions can be assumed to be smooth.  We can also assume that $g$ is bounded away from zero, i.e., that there exists $\delta > 0$ such that $|g(x)| \geq \delta$ for all $x$.  In fact, it is of interest to solve this problem (well) in the case where $g$ is a positive constant.
+
+We let $\widetilde{p}(x,t_n)$ denote the exact PDF of $x_n$.  Note that $\widetilde{p}(x, t_n)$ approximates $p(x, t_n)$, the exact PDF of $X(t_n)$.
+
+Let us denote the conditional density of $x_{n+1}$ given $x_n = y$ by $p_{n+1, n}(x | y)$.  Using this and (\ref{eqn:em}), we obtain the following evolution equation for the marginal density of $x_n$:
+\begin{equation}
+\label{dtq}
+\widetilde{p}(x, t_{n+1})=\int_{y=-\infty}^{\infty} p_{n+1, n}(x | y ) \widetilde{p}(y, t_n) \, \, dy.
+\end{equation}
+Using (\ref{eqn:emchar}), we can derive
+\begin{equation}
+\label{eqn:ftemchar}
+\int_{x=-\infty}^\infty e^{i s x} p_{n+1, n}(x | y) \, dx = e^{is \left(y+ f(y)h \right)}\exp (- h |s g(y)|^{\alpha} ).
+\end{equation}
+Let us derive a similar equation for the evolution of the characteristic function of $x_n$.  We begin with the Fourier transform
+\begin{equation}
+\label{eqn:CFdefn}
+\psi_{n+1}(s) = \int_{x=-\infty}^{\infty}e^{isx}\widetilde{p}(x,t_{n+1})dx.
+\end{equation}
+Substituting (\ref{dtq}) in (\ref{eqn:CFdefn}) and using (\ref{eqn:ftemchar}), we obtain
+\begin{equation}
+\label{eqn:CFupdate}
+\psi_{n+1}(s) = \int_{y=-\infty}^{\infty}e^{is\left(y+f(y)h\right)}\exp{\left(  -h |s g(y)|^{\alpha} \right)}\widetilde{p}(y, t_n) \, dy.
+\end{equation}
+Using the inverse Fourier transform
+\begin{equation}
+\label{eqn:inverseFT}
+\widetilde{p}(y, t_n) = \frac{1}{2\pi}\int_{u=-\infty}^{\infty}e^{-iuy}\psi_{n}(u)\, du
+\end{equation}
+in (\ref{eqn:CFupdate}), we get
+we get
+\begin{equation}
+\label{eqn:ctq}
+\psi_{n+1}(s) =  \int_{u=-\infty}^{\infty}\widetilde{K}(s,u)\psi_{n}(u) \, du
+\end{equation}
+with kernel
+\begin{equation}
+\label{eqn:kdef}
+\widetilde{K}(s,u) = \frac{1}{2\pi}\int_{y=-\infty}^{\infty}e^{is\left(y+f(y)h\right)}\exp{\left(  -h |s g(y)|^{\alpha} \right)}e^{-iuy}\, dy,
+\end{equation}
+By repeatedly applying (\ref{eqn:ctq}) we evolve the characteristic function forward in time.  If, at any point, we want to retrieve the PDF from the characteristic function, we use (\ref{eqn:inverseFT}).
+
+
+\paragraph{Collocation.} Any method to evaluate (\ref{eqn:ctq}) will require spatial discretization; that is, we must replace $\psi_n$ with a finite-dimensional approximation.  Based on the form of (\ref{eqn:kernelexpan}), we seek a base function with the appropriate decay rate in Fourier space, $\{ \exp( -|u|^\alpha )\}$ for large $u$.  Because we will later need to take derivatives at $u=0$, we also want this base function to be smooth.  For these reasons, we consider
+\begin{equation}
+\label{eqn:basefun}
+\Phi(u) = \exp \left( -\delta^\alpha \left[ ( 1 + (u/\delta)^2 )^{\alpha/2} - 1 \right] \right).
+\end{equation}
+For $|u| \gg 1$, $\Phi(u) \sim C_0 \exp \left( -|u|^\alpha \right)$ for $C_0 = e^{- \delta^\alpha}$ and hence has the correct decay rate.  For $|u| \ll 1$, $\Phi(u) \sim \exp(-C_1 u^2)$ for $C_1 = (\alpha/2) \delta^{\alpha - 2}$ and therefore has derivatives of all orders. The parameter $\delta > 0$ controls how close to zero we must zoom in to see this approximately Gaussian behavior near $u=0$.  We think of $\Phi(u)$ as a rounded, smoothed version of $\exp( -|u|^\alpha )$. 
+
+We approximate our characteristic functions using linear combinations of translated and scaled versions of $\Phi$:
+\begin{equation}
+\label{eqn:gaussmix}
+\psi_n(u) \approx \sum_{m=-M}^{m=M} \gamma^n_m \Phi\left( \frac{u-u_m}{\zeta}  \right)
+\end{equation}
+Here we take $u_m = m \Delta u$ for some $\Delta u > 0$.  There is a compatibility condition between $\Delta u$ and the parameter $\zeta > 0$---the $\Phi$'s must overlap not too little and not too much.
+We now use (\ref{eqn:gaussmix}) in (\ref{eqn:ctq}) to obtain
+\begin{equation}
+\label{eqn:ctqcolloc}
+\sum_{\ell=-M}^{\ell=M} \gamma^{n+1}_{\ell} \Phi \left( \frac{s - u_{\ell}}{\zeta} \right) = \sum_{m=-M}^{m=M}  \gamma^n_m  \int_{u=-\infty}^{\infty} \widetilde{K}(s,u) \Phi \left( \frac{u - u_m}{\zeta} \right) \, du.
+\end{equation}
+We enforce this equality at the $2M+1$ points $s = u_{\ell}$ for $-M \leq \ell \leq M$.  Let $C$ be the real $(2M+1) \times (2M+1)$ symmetric matrix defined by
+\[
+C_{\ell, m} = \Phi \left( \frac{u_{\ell} - u_{m}}{\zeta} \right).
+\]
+Similarly, let us define the real $(2M+1) \times (2M+1)$ matrix $K$ by
+\begin{equation}
+\label{eqn:Kmatdef}
+K_{\ell, m} = \int_{u=-\infty}^{\infty} \widetilde{K}(u_{\ell},u) \Phi \left( \frac{u - u_m}{\zeta} \right) \, du.
+\end{equation}
+The update equation (\ref{eqn:ctqcolloc}) becomes
+\begin{equation}
+\label{eqn:collocupdate}
+\gamma^{n+1} = C^{-1} K \gamma^n.
+\end{equation}
+Note that the normalization condition $\psi_n(0) = 1$ turns into
+\begin{equation}
+\label{eqn:collocnorm}
+\sum_{m=-M}^{m=M} \gamma^n_m \Phi \left( \frac{u_m}{\zeta} \right) = 1
+\end{equation}
+It should be clear that $C$ is easy to evaluate.  To evaluate $K$, we must work a little harder.  Critically, let us note that $K$ involves $\widetilde{K}$ under the integral sign.  In what follows, we develop a method to expand $\widetilde{K}$ in a series of generalized functions (also known as Schwartz distributions); this will enable us to evaluate $K$ and implement (\ref{eqn:collocupdate}) as a numerical method.
+
+\paragraph{Singularity.} Let us analyze the kernel $\widetilde{K}$ defined in (\ref{eqn:kdef}).  First, it is clear that in the $h \to 0$ limit, we obtain
+\[
+\widetilde{K}(s,u) = \frac{1}{2\pi}\int_{y=-\infty}^{\infty}e^{is y} e^{-iuy}\, dy = \delta(s - u).
+\]
+We can go further.  The following ordinary differential equation (ODE) is one of the easiest to solve:
+\[
+\dot{x} = -x.
+\]
+Given $x(0) = x_0$, the solution is clearly $x(t) = x_0 e^{-t}$.  The ODE has a globally stable, attracting fixed point at $x = 0$.  This ODE is in fact a special, noiseless case of our Levy SDE, with $f(x) = -x$ and $g(x) \equiv 0$.  The simplest way to reintroduce noise is to take $g(x) = g > 0$, a constant.  In this case, the kernel becomes
+\begin{align}
+\widetilde{K}(s,u) &= \frac{1}{2\pi} \exp{\left(  -h g^\alpha |s|^{\alpha} \right)} \int_{y=-\infty}^{\infty}e^{is y \left(1 - h\right)} e^{-iuy}\, dy \nonumber \\
+\label{eqn:OUprop}
+ &= \exp{\left(  -h g^\alpha |s|^{\alpha} \right)} \delta( s(1-h) - u).
+\end{align}
+This passes the eye test: as $h \to 0$, we obtain $\delta(s-u)$ as above.  We can keep going: with this kernel the evolution equation (\ref{eqn:ctq}) becomes
+\[
+\psi_{n+1}(s) = \exp{\left(  -h g^\alpha |s|^{\alpha} \right)} \psi_n( s(1-h) ).
+\]
+These relationships telescope, starting at $\psi_n$ and going back to the initial condition $\psi_0$:
+\begin{align*}
+\psi_{n}(s) &= \exp{\left(  -h g^\alpha |s|^{\alpha} \right)} \psi_{n-1}( s(1-h) ) \\
+\psi_{n-1}(s) &= \exp{\left(  -h g^\alpha |s|^{\alpha} \right)} \psi_{n-2}( s(1-h) ) \\
+&\vdots \\
+\psi_{2}(s) &= \exp{\left(  -h g^\alpha |s|^{\alpha} \right)} \psi_1( s(1-h) ) \\
+\psi_{1}(s) &= \exp{\left(  -h g^\alpha |s|^{\alpha} \right)} \psi_0( s(1-h) ).
+\end{align*}
+Putting things together, we obtain
+\[
+\psi_{n}(s) = \exp \left( -h g^\alpha |s|^\alpha \sum_{j=0}^{n-1} |1-h|^{j \alpha} \right) \psi_0( s (1-h)^n ).
+\]
+Let $n h = t$ for some time $t > 0$.  
+Fixing $t$ and taking $h \to 0$, we obtain
+\[
+\psi(s, t) = \exp{ \left( - g^\alpha |s|^{\alpha} \alpha^{-1} (1 - e^{-t \alpha}) \right)} \psi_0( e^{-t} s ).
+\]
+If this looks familiar, it is because when $\alpha = 2$, this is the Fourier transform of the Ornstein-Uhlenbeck probability density function.  When $\alpha=2$, the SDE with drift $f(x) = -x$ and constant $g$ is indeed the Ornstein-Uhlenbeck SDE driven by Brownian motion.
+
+We form two conclusions based on this.  First, and most importantly, for any $h > 0$, the kernel (\ref{eqn:OUprop}) includes a Dirac delta (or point mass) singularity!  So, the problem of numerically computing $\widetilde{K}$ becomes one of approximating this singularity.  Second, if we \emph{do} take care of the Dirac delta, it is possible to obtain an accurate temporal sequence of characteristic functions $\{ \psi_n \}_{n \geq 1}$.  In the above derivation, we evaluated (\ref{eqn:ctq}) directly, which is possible only because of the linear form of the drift function $f(x) = -x$.
+
+\paragraph{Kernel Expansion.} Based on the above, we make two choices.  First, we assume that $g(x) = g > 0$ is constant.  Second, we assume that $f$ is smooth.  Then we have
+\begin{align}
+\widetilde{K}(s,u) &= \frac{1}{2\pi} \exp{\left(  -h |s g|^{\alpha} \right)} \int_{y=-\infty}^{\infty}e^{i(s-u)y} e^{i s f(y) h} \, dy \nonumber \\
+ &= \frac{1}{2\pi} \exp{\left(  -h |s g|^{\alpha} \right)} \int_{y=-\infty}^\infty e^{i(s-u) y} (1 + i s f(y) h - \frac{1}{2} s^2 f(y)^2 h^2 + O(h^3) ) \, dy \nonumber \\
+ \label{eqn:kernelexpan}
+ &= \exp{\left(  -h |s g|^{\alpha} \right)} \left[ \delta(s-u) + i s h \widehat{f}(s-u) - \frac{1}{2} s^2 h^2 \widehat{f^2}(s-u) + O(h^3) \right]
+ \end{align}
+Let's explore a few example choices of $f$:
+\begin{itemize}
+\item Linear.  When $f(x) = -x$, we obtain 
+\begin{equation}
+ \label{eqn:ft1}
+\widehat{f}(k) = - \frac{1}{2 \pi} \int_{y=-\infty}^\infty e^{i k y} y \, dy = \frac{i}{2 \pi} \frac{\partial}{\partial k} \int_{y=-\infty}^\infty e^{i k y} \, dy = i \delta'(k)
+ \end{equation}
+More generally, with $\phi(x) = x^n$, we have
+\begin{equation}
+ \label{eqn:ftx}
+\widehat{\phi}(k) = \frac{1}{2 \pi} \int_{y=-\infty}^\infty e^{i k y} y^n \, dy = \frac{1}{2 \pi} i^{-n} \frac{\partial}{\partial k^n} \int_{y=-\infty}^\infty e^{i k y} \, dy = i^{-n} \frac{\partial}{\partial k^n} \delta(k)
+ \end{equation}
+ Then, truncating our kernel at second order, we obtain
+\[
+\widetilde{K}(s,u) =  \exp{\left(  -h |s g|^{\alpha} \right)} \left[ \delta(s-u) - s h \delta'(s-u) + \frac{1}{2} s^2 h^2 \delta''(s-u) \right].
+\]
+% \item Double Well.  When $f(x) = x - x^3$, we think of $f(x) = -V'(x)$ where $V(x) = (1/4) (x-1)^2 (x+1)^2$, a double well potential.  Using the above definition of $\phi$ and resulting $\widehat{\phi}$, we can write down $\widetilde{K}$: at a glance, we see that it will involve $\delta$ through $\delta^{(6)}$, due to the presence of $x^6$ in $f^2$.
+\item Sin. When $f(x) = \sin x$, we obtain
+\begin{equation}
+\label{eqn:sinhat}
+\widehat{f}(k) = \frac{1}{2} \int_{y=-\infty}^\infty e^{i k y} \sin y \, dy = \frac{i}{2} \left[ \delta(k-1) - \delta(k+1) \right].
+\end{equation}
+Similarly,
+\begin{equation}
+\label{eqn:sinsqhat}
+\widehat{f^2}(k) = \frac{1}{2} \int_{y=-\infty}^\infty e^{i k y} \sin^2 y \, dy = \frac{1}{4} \left[ -\delta(k-2) + 2 \delta(k) - \delta(k+2) \right].
+\end{equation}
+\end{itemize}
+We bring up these examples for a simple reason: every smooth $f$, especially those appearing in physical models, can be expanded in either polynomials or trigonometric series.  These expansions will yield kernel expansions in terms of Dirac delta's (and their formal derivatives) as above.
+
+%All of the above is closely related to ideas in harmonic analysis---see the relationship between multipliers, operators, and kernels here, especially in the table with heading ``On the Euclidean space:'' \url{https://en.wikipedia.org/wiki/Multiplier_(Fourier_analysis)}.
+
+\paragraph{Inducing a Numerical Method.} For each specific choice of the drift function $f(x)$, the kernel expansion (\ref{eqn:kernelexpan}) induces a numerical method.  The precise form of this numerical method depends on $f$, or more specifically, depends on the Fourier transform of powers of $f$.  We consider two cases:
+
+\begin{enumerate}
+\item Let's first examine what hapepens for the linear drift $f(x) = -x$.  Using (\ref{eqn:ft1}) and (\ref{eqn:ftx}), we can compute the kernel expansion  (\ref{eqn:kernelexpan}) up to second-order in $h$:
+\begin{equation}
+\label{eqn:kelinear}
+\widetilde{K}(s,u) = \exp(-h |s g|^{\alpha})  \left[ \delta(s-u) - s h \delta'(s-u) + \frac{1}{2} s^2 h^2 \delta''(s-u) \right].
+\end{equation}
+Note that we have used prime notation to indicate taking the derivative first and then inserting $s-u$ as the point of evaluation:
+\[
+\delta^{(k)} (s-u) = \frac{d^k}{d z^k} \delta(z) \biggr|_{z=s-u}.
+\]
+This implies that
+\[
+\delta^{(k)} (s-u) = (-1)^k \frac{\partial^k}{\partial u^k} \delta(s-u),
+\]
+where now we are taking the derivative of $\delta(s-u)$ with respect to $u$.
+By integration by parts we have
+\begin{multline*}
+\int_{u=-\infty}^\infty \delta'(s-u) \psi(u) \, du = 
+\int_{u=-\infty}^\infty -\frac{\partial}{\partial u} \delta(s-u) \psi(u) \, du
+\\
+= \int_{u=-\infty}^\infty \delta(s-u) \frac{\partial}{\partial u} \psi(u) \, du
+= \psi'(s).
+\end{multline*}
+Then using the kernel expansion (\ref{eqn:kelinear}) in (\ref{eqn:ctq}), we get
+\begin{align}
+\psi_{n+1}(s) &= \exp(-h |s g|^{\alpha})  \int_{u=-\infty}^\infty \left[ \delta(s-u) - s h \delta'(s-u) + \frac{1}{2} s^2 h^2 \delta''(s-u) \right] \psi_n(u) \, du \nonumber \\
+\label{eqn:ctqlinear}
+ &=  \exp(-h |s g|^{\alpha}) \left[ \psi_n(s) - s h \psi'_n(s) + \frac{1}{2} s^2 h^2 \psi_n''(s) \right]
+ \end{align}
+We recognize the term in square brackets as the Taylor expansion of $\psi_n(s(1-h))$ about $h=0$.  This gives us a convergence proof by simply writing the method as
+\[
+\psi_{n+1}(s) = \exp(-h |s g|^{\alpha}) \left[ \psi_n(s(1-h)) + O(h^3) \right],
+\]
+following the derivation above and taking the $h \to 0$ limit.  Next, to fully realize (\ref{eqn:ctqlinear}) as a numerical method, we must use it in the context of the collocation method.  Hence we take (\ref{eqn:kelinear}) and use it in (\ref{eqn:Kmatdef}).  
+
+\item Let's now consider $f(x) = \sin x$.  Using (\ref{eqn:sinhat}) and (\ref{eqn:sinsqhat}), we can compute the kernel expansion  (\ref{eqn:kernelexpan}) up to second-order in $h$:
+\begin{multline}
+\label{eqn:kesin}
+\widetilde{K}(s,u) = \exp(-h |s g|^{\alpha})  \biggl[ \delta(s-u) - \frac{1}{2} s h \bigl( \delta(s-u-1) - \delta(s-u+1) \bigr) \\ - \frac{1}{8} s^2 h^2 \bigl( -\delta(s-u-2) + 2 \delta(s-u) - \delta(s-u+2) \bigr) \biggr]
+\end{multline}
+Then using this kernel expansion in (\ref{eqn:ctq}), we get
+\begin{multline*}
+\psi_{n+1}(s) = \exp(-h |s g|^{\alpha}) \biggl[
+\Bigl( 1 - \frac{1}{4} s^2 h^2 \Bigr) \psi_n(s) \\
+- \frac{1}{2} s h \Bigl( \psi_n(s-1) - \psi_n(s + 1) \Bigr)
++ \frac{1}{8} s^2 h^2 \Bigl( \psi_n(s-2) + \psi_n(s + 2) \Bigr) \biggr]
+\end{multline*}
+In case these combinations of coefficients look familiar, they are in fact Taylor expansions of Bessel functions of the first kind!  Consider the exact kernel and apply the Jacobi-Anger expansion to obtain:
+\begin{align}
+\widetilde{K}(s,u) &= \frac{1}{2 \pi}  \exp(-h |s g|^{\alpha})  \int_{y=-\infty}^\infty e^{i(s-u)y} e^{i s h \sin y } \, dy \nonumber \\
+ &= \frac{1}{2 \pi}  \exp(-h |s g|^{\alpha})  \int_{y=-\infty}^\infty e^{i(s-u)y} \sum_{n=-\infty}^\infty J_n(s h) e^{i n  y} \, dy \nonumber \\
+ \label{eqn:exactsinkernel}
+ &=  \exp(-h |s g|^{\alpha}) \sum_{n=-\infty}^\infty J_n(s h) \delta(s - u + n) 
+\end{align}
+Now note that
+\begin{align*}
+J_0 (sh) &= 1 - \frac{1}{4} s^2 h^2 + O(h^4) \\
+J_{\pm 1} (sh) &= \pm \frac{1}{2} s h + O(h^3) \\
+J_{\pm 2} (sh) &= \frac{1}{8} s^2 h^2 + O(h^4)
+\end{align*}
+For $|n| \geq 3$, the expansion of $J_{n}(s h)$ begins with a term that is at least cubic in $s h$, and hence can be ignored for our purposes.  Now substituting these Bessel function expansions into (\ref{eqn:exactsinkernel}) and ignoring terms for which $|n| \geq 3$, we obtain precisely the same result as the kernel expansion (\ref{eqn:kesin}).
+\end{enumerate}
+
+
+% Acknowledgments---Will not appear in anonymized version
+\acks{We thank a bunch of people.}
+
+% \bibliography{yourbibfile}
+
+\end{document}
