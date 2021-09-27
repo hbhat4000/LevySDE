@@ -1,0 +1,76 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 11.2' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       158,          7]
+NotebookDataLength[      1882,         66]
+NotebookOptionsPosition[      1457,         50]
+NotebookOutlinePosition[      1805,         65]
+CellTagsIndexPosition[      1762,         62]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+
+Cell[CellGroupData[{
+Cell[BoxData[
+ RowBox[{"FourierTransform", "[", 
+  RowBox[{
+   RowBox[{
+    RowBox[{"Sin", "[", "y", "]"}], "/", "2"}], ",", "y", ",", "k", ",", 
+   RowBox[{"FourierParameters", "\[Rule]", 
+    RowBox[{"{", 
+     RowBox[{"1", ",", "1"}], "}"}]}]}], "]"}]], "Input",
+ CellChangeTimes->{{3.8415943949776683`*^9, 
+  3.8415944285256467`*^9}},ExpressionUUID->"4cb838e0-995a-4900-8441-\
+bf6fe60eafb7"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{
+   FractionBox["1", "2"], " ", "\[ImaginaryI]", " ", "\[Pi]", " ", 
+   RowBox[{"DiracDelta", "[", 
+    RowBox[{
+     RowBox[{"-", "1"}], "+", "k"}], "]"}]}], "-", 
+  RowBox[{
+   FractionBox["1", "2"], " ", "\[ImaginaryI]", " ", "\[Pi]", " ", 
+   RowBox[{"DiracDelta", "[", 
+    RowBox[{"1", "+", "k"}], "]"}]}]}]], "Output",
+ CellChangeTimes->{
+  3.8415944291519017`*^9},ExpressionUUID->"6f12929f-40b9-4684-92f2-\
+91d027011089"]
+}, Open  ]]
+},
+WindowSize->{800, 742},
+WindowMargins->{{160, Automatic}, {21, Automatic}},
+FrontEndVersion->"11.2 for Microsoft Windows (64-bit) (September 10, 2017)",
+StyleDefinitions->"Default.nb"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[CellGroupData[{
+Cell[580, 22, 395, 10, 28, "Input",ExpressionUUID->"4cb838e0-995a-4900-8441-bf6fe60eafb7"],
+Cell[978, 34, 463, 13, 55, "Output",ExpressionUUID->"6f12929f-40b9-4684-92f2-91d027011089"]
+}, Open  ]]
+}
+]
+*)
+
+(* End of internal cache information *)
+
