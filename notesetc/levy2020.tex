@@ -11,7 +11,7 @@
 \begin{document}
 \begin{center}
 \textbf{Characteristic Function Evolution for L\'{e}vy SDE}\\
-Harish S. Bhat, Abdullah Chaudhary and Arnold D. Kim, 2020
+Harish S. Bhat and Arnold D. Kim, 2021
 \end{center}
 
 \paragraph{Problem Statement.} Let $L_t^{\alpha}$ denote an $\alpha$-stable L\'{e}vy processes, i.e., a process such that:
@@ -36,11 +36,17 @@ Let $p(x,t)$ denote the probability density function (PDF) of $X_t$---note that 
 \emph{Suppose that $p(x,0)$ is given.  Our goal is to compute $p(x,t)$ for $t > 0$.}
 \end{quote}
 
-\paragraph{Brief Review of Characteristic Functions.} Given any random variable $X$ with density $p(x)$, we can define the characteristic function as the Fourier transform:
-\[
-\psi(s) = \int_{x=-\infty}^\infty e^{i s x} p(x) \, dx.
-\]
-Note that
+\paragraph{Brief Review of Characteristic Functions.} Given any random variable $X$ with density $p(x)$, we can define the characteristic function as the Fourier transform of the density:
+\begin{equation}
+\label{eqn:forft}
+\psi(s) = \widehat{p}(s) = \int_{x=-\infty}^\infty e^{i s x} p(x) \, dx.
+\end{equation}
+The inverse Fourier transform then gives us the density back:
+\begin{equation}
+\label{eqn:invft}
+p(x) = \frac{1}{2 \pi} \int_{s=-\infty}^{\infty} e^{-i s x} \psi(s) \, ds.
+\end{equation}
+Note also that
 \[
 \psi(0) = \int_{x=-\infty}^\infty p(x) \, dx = 1.
 \]
@@ -145,42 +151,53 @@ If this looks familiar, it is because when $\alpha = 2$, this is the Fourier tra
 We form two conclusions based on this.  First, and most importantly, for any $h > 0$, the kernel (\ref{eqn:OUprop}) includes a Dirac delta (or point mass) singularity!  So, the problem of numerically computing $\widetilde{K}$ becomes one of approximating this singularity.  Second, if we \emph{do} take care of the Dirac delta, it is possible to obtain an accurate temporal sequence of characteristic functions $\{ \psi_n \}_{n \geq 1}$.  In the above derivation, we evaluated (\ref{eqn:ctq}) directly, which is possible only because of the linear form of the drift function $f(x) = -x$.
 
 \paragraph{Kernel Expansion.} Based on the above, we make two choices.  First, we assume that $g(x) = g > 0$ is constant.  Second, we assume that $f$ is smooth.  Then we have
-\begin{align}
-\widetilde{K}(s,u) &= \frac{1}{2\pi} \exp{\left(  -h |s g|^{\alpha} \right)} \int_{y=-\infty}^{\infty}e^{i(s-u)y} e^{i s f(y) h} \, dy \nonumber \\
- &= \frac{1}{2\pi} \exp{\left(  -h |s g|^{\alpha} \right)} \int_{y=-\infty}^\infty e^{i(s-u) y} (1 + i s f(y) h - \frac{1}{2} s^2 f(y)^2 h^2 + O(h^3) ) \, dy \nonumber \\
+\begin{align*}
+\widetilde{K}(s,u) &= \frac{1}{2\pi} \exp{\left(  -h |s g|^{\alpha} \right)} \int_{y=-\infty}^{\infty}e^{i(s-u)y} e^{i s f(y) h} \, dy \\
+ &= \frac{1}{2\pi} \exp{\left(  -h |s g|^{\alpha} \right)} \int_{y=-\infty}^\infty e^{i(s-u) y} (1 + i s f(y) h - \frac{1}{2} s^2 f(y)^2 h^2 + O(h^3) ) \, dy.
+\end{align*}
+Now let us fill in a few details. First,
+\[
+\int_{y=-\infty}^\infty  e^{i z y} \cdot (2 \pi)^{-1} \, dy = \delta(z).
+\]
+We recognize the right-hand side as the forward Fourier transform (\ref{eqn:forft}) of the constant function $(2 \pi)^{-1}$.  More generally, we have
+\[
+\frac{1}{2 \pi} \int_{y=-\infty}^\infty e^{i z y} \varphi(y) \, dy = \frac{1}{2 \pi} \widehat{\varphi}(z).
+\]
+Using these facts with $z = s - u$, we obtain
+\begin{equation}
  \label{eqn:kernelexpan}
- &= \exp{\left(  -h |s g|^{\alpha} \right)} \left[ \delta(s-u) + i s h \widehat{f}(s-u) - \frac{1}{2} s^2 h^2 \widehat{f^2}(s-u) + O(h^3) \right]
- \end{align}
+ \widetilde{K}(s,u) = \exp{\left(  -h |s g|^{\alpha} \right)} \left[ \delta(s-u) + \frac{i s h}{2 \pi} \widehat{f}(s-u) - \frac{1}{2} \frac{s^2 h^2}{2 \pi} \widehat{f^2}(s-u) + O(h^3) \right]
+ \end{equation}
 Let's explore a few example choices of $f$:
 \begin{itemize}
 \item Linear.  When $f(x) = -x$, we obtain 
 \begin{align}
-\widehat{f}(k) &= - \frac{1}{2 \pi} \int_{y=-\infty}^\infty e^{i k y} y \, dy \nonumber \\
+\frac{1}{2 \pi} \widehat{f}(k) &= - \frac{1}{2 \pi} \int_{y=-\infty}^\infty e^{i k y} y \, dy \nonumber \\
  &= \frac{i}{2 \pi} \frac{\partial}{\partial k} \int_{y=-\infty}^\infty e^{i k y} \, dy \nonumber \\
  &= i \delta'(k)
  \label{eqn:ft1}
  \end{align}
 More generally, with $\phi(x) = x^n$, we have
 \begin{align}
-\widehat{\phi}(k) &= \frac{1}{2 \pi} \int_{y=-\infty}^\infty e^{i k y} y^n \, dy \nonumber \\
- &= \frac{1}{2 \pi} i^{-n} \frac{\partial}{\partial k^n} \int_{y=-\infty}^\infty e^{i k y} \, dy \nonumber \\
+\frac{1}{2 \pi} \widehat{\phi}(k) &= \frac{1}{2 \pi} \int_{y=-\infty}^\infty e^{i k y} y^n \, dy \nonumber \\
+ &= \frac{1}{2 \pi} i^{-n} \frac{\partial^n}{\partial k^n} \int_{y=-\infty}^\infty e^{i k y} \, dy \nonumber \\
  \label{eqn:ftx}
- &= i^{-n} \frac{\partial}{\partial k^n} \delta(k)
+ &= i^{-n} \frac{\partial^n}{\partial k^n} \delta(k)
  \end{align}
- Then, truncating our kernel at second order, we obtain
+Hence
 \[
-\widetilde{K}(s,u) =  \exp{\left(  -h |s g|^{\alpha} \right)} \left[ \delta(s-u) - s h \delta'(s-u) + \frac{1}{2} s^2 h^2 \delta''(s-u) \right].
+\widetilde{K}(s,u) =  \exp{\left(  -h |s g|^{\alpha} \right)} \left[ \delta(s-u) - s h \delta'(s-u) + \frac{1}{2} s^2 h^2 \delta''(s-u) + O(h^3) \right].
 \]
 \item Double Well.  When $f(x) = x - x^3$, we think of $f(x) = -V'(x)$ where $V(x) = (1/4) (x-1)^2 (x+1)^2$, a double well potential.  Using the above definition of $\phi$ and resulting $\widehat{\phi}$, we can write down $\widetilde{K}$: at a glance, we see that it will involve $\delta$ through $\delta^{(6)}$, due to the presence of $x^6$ in $f^2$.
 \item Sin. When $f(x) = \sin x$, we obtain
 \begin{equation}
 \label{eqn:sinhat}
-\widehat{f}(k) = \frac{1}{2} \int_{y=-\infty}^\infty e^{i k y} \sin y \, dy = \frac{i}{2} \left[ \delta(k-1) - \delta(k+1) \right].
+\frac{1}{2 \pi} \widehat{f}(k) = \frac{1}{2 \pi} \int_{y=-\infty}^\infty e^{i k y} \sin y \, dy = \frac{i}{2} \left[ \delta(k-1) - \delta(k+1) \right].
 \end{equation}
 Similarly,
 \begin{equation}
 \label{eqn:sinsqhat}
-\widehat{f^2}(k) = \frac{1}{2} \int_{y=-\infty}^\infty e^{i k y} \sin^2 y \, dy = \frac{1}{4} \left[ -\delta(k-2) + 2 \delta(k) - \delta(k+2) \right].
+\frac{1}{2 \pi} \widehat{f^2}(k) = \frac{1}{2 \pi} \int_{y=-\infty}^\infty e^{i k y} \sin^2 y \, dy = \frac{1}{4} \left[ -\delta(k-2) + 2 \delta(k) - \delta(k+2) \right].
 \end{equation}
 \end{itemize}
 We bring up these examples for a simple reason: every smooth $f$, especially those appearing in physical models, can be expanded in either polynomials or trigonometric series.  These expansions will yield kernel expansions in terms of Dirac delta's (and their formal derivatives) as above.
