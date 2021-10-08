@@ -14,7 +14,7 @@
 Harish S. Bhat and Arnold D. Kim, 2021
 \end{center}
 
-\paragraph{Problem Statement.} Let $L_t^{\alpha}$ denote an $\alpha$-stable L\'{e}vy processes, i.e., a process such that:
+\paragraph{Problem Statement.} Let $L_t^{\alpha}$ denote an $\alpha$-stable L\'{e}vy process, i.e., a process such that:
 \begin{enumerate}
 \item $L_0^\alpha = 0$ almost surely,
 \item $L_t^\alpha$ has independent increments, and
@@ -353,6 +353,35 @@ which yields the propagation equation
 \gamma^{n+1} = \left[ A - D(B-A) \right]^{-1} D A \gamma^n.
 \]
 In our experiments, the propagator thus defined has better stability properties than the fully explicit $A^{-1} D B$ propagator. This is consistent with stability results for semi-implicit Euler-Maruyama methods.
+
+\paragraph{Nonparametrics.} Suppose the true drift function is $\widetilde{f} \in L^2([-\pi,\pi],\mathbb{R})$.  The Fourier series coefficients of this true drift are
+\[
+c_j = \frac{1}{2 \pi} \int_{-\pi}^{\pi} e^{-i j x} \widetilde{f}(x) \, dx,
+\]
+from which we can form the approximate drift
+\[
+f(x) = \sum_{j=-J}^J c_j e^{i j x}.
+\]
+Note that because $\tilde{f} \in \mathbb{R}$, we know that $c_{-j} = \overline{c_j}$. Then the Fourier transform is obvious:
+\[
+\frac{1}{2 \pi} \widehat{f}(s) = \sum_{j=-J}^J c_j \delta(s + j).
+\]
+Also note that
+\begin{align*}
+f(x)^2 &= \sum_{j=-J}^J c_j e^{i j x} \sum_{\ell=-J}^J c_{\ell} e^{i \ell x} \\
+ &= \sum_{j,\ell} c_j c_{\ell} e^{i (j + \ell) x} \\
+ &= \sum_{k=-2J}^{2J} \sum_{j=-J}^J c_j c_{k-j} e^{i k x},
+\end{align*}
+with the understanding that $c_{k-j} = 0$ when $|k-j| > J$.  Hence
+\[
+\frac{1}{2 \pi} \widehat{f^2} (s) = \sum_{k=-2J}^{2J} \sum_{j=-J}^J c_j c_{k-j}  \delta(s + k).
+\]
+% Now put this into the kernel expansion
+% Then derive a numerical method for it
+% See if you can fit the Gaussian
+% let theta = Fourier coefs
+% i.e. check the likelihood function *near* the true coefs
+% if it's locally a min we can fit with some MCMC
 
 \end{document}
 
