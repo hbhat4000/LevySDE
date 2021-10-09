@@ -376,6 +376,21 @@ with the understanding that $c_{k-j} = 0$ when $|k-j| > J$.  Hence
 \[
 \frac{1}{2 \pi} \widehat{f^2} (s) = \sum_{k=-2J}^{2J} \sum_{j=-J}^J c_j c_{k-j}  \delta(s + k).
 \]
+We now substitute the Fourier transforms into the kernel expansion:
+\begin{multline}
+ \label{eqn:nonparke}
+ \widetilde{K}(s,u) = \exp{\left(  -h |s g|^{\alpha} \right)} \biggl[ \delta(s-u) + i s h \sum_{j=-J}^J c_j \delta(s - u + j) \\ - \frac{1}{2} s^2 h^2 \sum_{k=-2J}^{2J} \sum_{j=-J}^J c_j c_{k-j}  \delta(s - u + k) + O(h^3) \biggr]
+ \end{multline}
+Inserting this into (\ref{eqn:ctq}) and truncating yields
+\begin{align*}
+ \psi_{n+1}(s) &=  \exp{\left(  -h |s g|^{\alpha} \right)} \int_{u=-\infty}^{\infty} \biggl[ \delta(s-u) + i s h \sum_{j=-J}^J c_j \delta(s - u + j) \\ 
+ & \qquad \qquad \qquad \qquad \qquad \qquad - \frac{1}{2} s^2 h^2 \sum_{k=-2J}^{2J} \sum_{j=-J}^J c_j c_{k-j}  \delta(s - u + k) \biggr]
+ \psi_{n}(u) \, du \\
+ &= \exp{\left(  -h |s g|^{\alpha} \right)} \biggl[ \psi_n(s) + i s h \sum_{j=-J}^J c_j \psi_n(s+j) \\
+ & \qquad \qquad \qquad \qquad \qquad \qquad- \frac{1}{2} s^2 h^2 \sum_{k=-2J}^{2J} \sum_{j=-J}^J c_j c_{k-j} \psi_n(s+k) \biggr]
+\end{align*}
+
+
 % Now put this into the kernel expansion
 % Then derive a numerical method for it
 % See if you can fit the Gaussian
