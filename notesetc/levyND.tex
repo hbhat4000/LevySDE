@@ -1,0 +1,86 @@
+\documentclass[12pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,latexsym}
+
+\begin{document}
+\begin{center} Extending the idea to higher dimensions, 10/12/21 \end{center}
+
+Consider the system
+\[
+d \mathbf{x}_t = \mathbf{f}(\mathbf{x}_t) dt + \mathbf{g} d\mathbf{L}_t^\alpha.
+\]
+Here
+\begin{itemize}
+\item $\mathbf{x}_t \in \mathbb{R}^n$ is a stochastic process indexed by the continuous time variable $t$; for each fixed $t$, $\mathbf{x}_t$ is a random variable taking values in $\mathbb{R}^n$
+\item $\mathbf{f} : \mathbb{R}^n \to \mathbb{R}^n$ is a smooth vector field
+\item $\mathbf{g}$ is a diagonal, constant matrix---we will abuse notation and refer to $\mathbf{g}$ as a vector when convenient
+\item $\mathbf{L}_t^\alpha \in \mathbb{R}^n$ is a vector of independent Levy alpha-stable processes
+\end{itemize}
+The characteristic function of the process is
+\[
+\psi(\mathbf{s}, t) = E[e^{i \mathbf{s} \cdot \mathbf{x}_t}],
+\]
+where $E$ denotes expected value.  Assume that $\mathbf{x}_t$ has a time-dependent probability density function $p(\mathbf{x},t)$.  Then
+\[
+\psi(\mathbf{s}, t) = \widehat{p}(\mathbf{s},t) = \int_{\mathbb{R}^n} e^{i \mathbf{s} \cdot \mathbf{y}} p(\mathbf{y},t) \, d \mathbf{y}.
+\]
+Note that we can recover the density from the characteristic function via the inverse transform
+\[
+p(\mathbf{y},t) = (2 \pi)^{-n} \int_{\mathbb{R}^n} e^{-i \mathbf{s} \cdot \mathbf{y}} \psi(\mathbf{s},t) \, d \mathbf{s}.
+\]
+
+\paragraph{Discrete Time.} We will work with a time-discretization:
+\[
+\mathbf{x}_{k+1} = \mathbf{x}_k + \mathbf{f}(\mathbf{x}_k) h + \mathbf{g} \Delta \mathbf{L}^{\alpha}_{k+1},
+\]
+where the increment $\Delta \mathbf{L}_{k+1}^{\alpha}$ is a random vector that is independent of $\mathbf{x}_k$.  The $j$-th component of this increment vector has characteristic function
+\[
+\psi(s_j) = \exp(- h |s_j|^\alpha).
+\]
+As all the components of $\Delta \mathbf{L}_{k+1}^{\alpha}$ are independent, its characteristic function is the product of all the $\psi(s_j)$ components:
+\[
+\psi_{\Delta \mathbf{L}^\alpha}(\mathbf{s}) = \exp\left( -h \sum_{j=1}^n |s_j|^\alpha \right).
+\]
+Multiplying the increment vector by $\mathbf{g}$ results in the characteristic function
+\[
+\psi_{\mathbf{g} \Delta \mathbf{L}^\alpha}(\mathbf{s}) = \exp\left( -h \sum_{j=1}^n |g_j s_j|^\alpha \right).
+\]
+Now consider the random variable $\mathbf{x}_{k+1} \, | \, \mathbf{x}_k = \mathbf{y}$.  As $\mathbf{x}_k$ is independent of the increment vector, we can treat $\mathbf{x}_{k+1}$ as translation of $\mathbf{g} \Delta \mathbf{L}^\alpha_{k+1}$ by the constant vector $\mathbf{y} + \mathbf{f}(\mathbf{y}) h$.  Then by standard properties of characteristic functions (or Fourier transforms), we have
+\begin{align}
+\psi_{\mathbf{x}_{k+1} \, | \, \mathbf{x}_k = \mathbf{y}}(\mathbf{s}) &= \exp\left( i \mathbf{s} \cdot [\mathbf{y} + \mathbf{f}(\mathbf{y}) h] \right) \exp\left( -h \sum_{j=1}^n |g_j s_j|^\alpha \right) \nonumber \\
+\label{eqn:prodcharfun}
+ &= \prod_{j=1}^n \exp\left( i s_j [y^j + f^j(\mathbf{y}) h] \right) \exp\left( -h |g_j s_j|^\alpha \right)
+\end{align}
+This factorization, which is exact, becomes important later. 
+The discrete-time propagation of density functions is given by the laws of probability:
+\[
+p_{k+1}(\mathbf{x}) = \int_{y \in \mathbb{R}^n} p_{k+1 \, | \, k}(\mathbf{x} \, | \,\mathbf{y}) p_k(\mathbf{y}) \, d \mathbf{y},
+\]
+where $p_{k+1 \, | \, k}(\mathbf{x},\mathbf{y})$ is the probability density function of $\mathbf{x}_{k+1} \, | \, \mathbf{x}_k = \mathbf{y}$.  Taking the Fourier transform (from $\mathbf{x}$ to $\mathbf{s}$) we obtain
+\[
+\psi_{k+1}(\mathbf{s}) = \int_{\mathbf{y} \in \mathbb{R}^n} \psi_{\mathbf{x}_{k+1} \, | \, \mathbf{x}_k = \mathbf{y}}(\mathbf{s}) p_k(\mathbf{y}) \, d \mathbf{y}.
+\]
+
+\paragraph{Basic Estimation.} Suppose we seek to use time series observations
+\[
+\{ \mathbf{y}_0, \mathbf{y}_1, \ldots, \mathbf{y}_N \}
+\]
+to estimate parameters $\theta$ in $\mathbf{f}$.  The log likelihood function is
+\begin{align*}
+L(\theta) &= \log p(  \mathbf{y}_0, \mathbf{y}_1, \ldots, \mathbf{y}_N \, | \, \theta ) \\
+ &= \log \left\{ p(\mathbf{y}_0 \, | \, \theta) \prod_{j=1}^N p_{j \, | \, j-1}( \mathbf{y}_j \, | \, \mathbf{y}_{j-1}, \theta ) \right\} \\
+ &= \log p(\mathbf{y}_0) + \sum_{j=1}^N \log p_{j \, | \, j-1}( \mathbf{y}_j \, | \, \mathbf{y}_{j-1}, \theta ) 
+\end{align*}
+In the basic estimation framework, we assume the \emph{time step of the data} equals $h$, the time step of the numerical integration scheme.  This assumption enables us to
+\begin{itemize}
+\item use (\ref{eqn:prodcharfun}) in the above expression and
+\item substitute $p_k(\mathbf{y}) = \delta(\mathbf{y} - \mathbf{y}_k)$
+\end{itemize}
+to obtain
+\[
+\psi_{k+1}(\mathbf{s}) = \prod_{j=1}^n \exp\left( i s_j [y^j_k + f^j(\mathbf{y}_k) h] \right) \exp\left( -h |g_j s_j|^\alpha \right).
+\]
+
+
+\end{document}
+
