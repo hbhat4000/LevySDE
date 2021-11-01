@@ -362,7 +362,8 @@ from which we can form the approximate drift
 \[
 f(x) = \sum_{j=-J}^J c_j e^{i j x/L}.
 \]
-Note that because $\tilde{f} \in \mathbb{R}$, we know that $c_{-j} = \overline{c_j}$. Then the Fourier transform is obvious:
+The reason this is approximate is because we have truncated the series at $J$ terms.
+Note that because $\tilde{f} \in \mathbb{R}$, we know that $c_{-j} = \overline{c_j}$. Because the sum involves complex exponentials, the Fourier transform is obvious:
 \[
 \frac{1}{2 \pi} \widehat{f}(s) = \sum_{j=-J}^J c_j \delta(s + j/L).
 \]
@@ -389,8 +390,29 @@ Inserting this into (\ref{eqn:ctq}) and truncating yields
  &= \exp{\left(  -h |s g|^{\alpha} \right)} \biggl[ \psi_n(s) + i s h \sum_{j=-J}^J c_j \psi_n(s+j/L) \\
  & \qquad \qquad \qquad \qquad \qquad \qquad- \frac{1}{2} s^2 h^2 \sum_{k=-2J}^{2J} \sum_{j=-J}^J c_j c_{k-j} \psi_n(s+k/L) \biggr]
 \end{align*}
-
-
+Let us choose a uniform grid in $s$ space.  For $\ell = -\mathcal{L}, -\mathcal{L}+1, \ldots, \mathcal{L}-1, \mathcal{L}$,
+\[
+s_{\ell} = \ell / L.
+\]
+Then
+\begin{multline*}
+\psi_{n+1}(s_{\ell}) = \exp{\left(  -h |s_{\ell} g|^{\alpha} \right)} \biggl[ \psi_n(s_{\ell}) + i s_{\ell} h \sum_{j=-J}^J c_j \psi_n( s_{\ell+j} ) \\
+- \frac{1}{2} s_{\ell}^2 h^2 \sum_{k=-2J}^{2J} \sum_{j=-J}^J c_j c_{k-j} \psi_n( s_{\ell+k} ) \biggr]
+\end{multline*}
+Let $\ell' = \ell + j$ and $\ell'' = \ell + k$.  Then
+\begin{multline*}
+	\psi_{n+1}(s_{\ell}) = \exp{\left(  -h |s_{\ell} g|^{\alpha} \right)} \biggl[ \psi_n(s_{\ell}) + i s_{\ell} h \sum_{\ell'=\ell-J}^{\ell+J} c_{\ell' - \ell} \psi_n( s_{\ell'} ) \\
+	- \frac{1}{2} s_{\ell}^2 h^2 \sum_{\ell''=\ell-2J}^{\ell+2J} \sum_{j=-J}^J c_j c_{\ell'' - \ell -j} \psi_n( s_{\ell''} ) \biggr]
+\end{multline*}
+Coefficients $c_j$ with $|j| > J$ are automatically zero.  Then let us define the $(2\mathcal{L}+1) \times (2 \mathcal{L}+1)$ matrices
+\begin{align*}
+	M^{(1)}_{\ell, \ell'} &= c_{\ell' - \ell} \\
+	M^{(2)}_{\ell, \ell''} &=  \sum_{j=-J}^J c_j c_{\ell'' - \ell -j},
+\end{align*}
+and a vector $\vec{\psi}_n$ whose $\ell$-th element is $\psi_{n}(s_{\ell})$. Let $D$ be a diagonal matrix such that $D_{\ell,\ell} =  \exp{\left(  -h |s_{\ell} g|^{\alpha} \right)}$, and let $S$ be a diagonal matrix such that $S_{\ell,\ell} = s_{\ell}$.  Then
+\[
+\vec{\psi}_{n+1} = D \left[ I + i h S M^{(1)} - \frac{h^2}{2} S^2 M^{(2)}  \right] \vec{\psi}_n
+\]
 % Now put this into the kernel expansion
 % Then derive a numerical method for it
 % See if you can fit the Gaussian
