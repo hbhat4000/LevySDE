@@ -29,11 +29,11 @@ Note that we can recover the density from the characteristic function via the in
 p(\mathbf{y},t) = (2 \pi)^{-n} \int_{\mathbb{R}^n} e^{-i \mathbf{s} \cdot \mathbf{y}} \psi(\mathbf{s},t) \, d \mathbf{s}.
 \]
 
-\paragraph{Discrete Time.} We will work with a time-discretization:
+\paragraph{Discrete Time Forward Propagation.} In the forward propagation problem, we assume that $\mathbf{f}$, $\mathbf{g}$, $\alpha$ and the distribution of the initial condition $\mathbf{x}_0$ are known.  Then the task is to compute the distribution of $\mathbf{x}_k$ for $k \geq 1$.  To compute this distribution, we first discretize the SDE in time:
 \[
 \mathbf{x}_{k+1} = \mathbf{x}_k + \mathbf{f}(\mathbf{x}_k) h + \mathbf{g} \Delta \mathbf{L}^{\alpha}_{k+1},
 \]
-where the increment $\Delta \mathbf{L}_{k+1}^{\alpha}$ is a random vector that is independent of $\mathbf{x}_k$.  The $j$-th component of this increment vector has characteristic function
+Here the increment $\Delta \mathbf{L}_{k+1}^{\alpha}$ is a random vector that is independent of $\mathbf{x}_k$.  The $j$-th component of this increment vector has characteristic function
 \[
 \psi(s_j) = \exp(- h |s_j|^\alpha).
 \]
@@ -51,8 +51,7 @@ Now consider the random variable $\mathbf{x}_{k+1} \, | \, \mathbf{x}_k = \mathb
 \label{eqn:prodcharfun}
  &= \prod_{j=1}^n \exp\left( i s_j [y^j + f^j(\mathbf{y}) h] \right) \exp\left( -h |g_j s_j|^\alpha \right)
 \end{align}
-This factorization, which is exact, becomes important later. 
-The discrete-time propagation of density functions is given by the laws of probability:
+This factorization is exact.  The discrete-time propagation of density functions is given by the laws of probability:
 \[
 p_{k+1}(\mathbf{x}) = \int_{y \in \mathbb{R}^n} p_{k+1 \, | \, k}(\mathbf{x} \, | \,\mathbf{y}) p_k(\mathbf{y}) \, d \mathbf{y},
 \]
@@ -60,7 +59,79 @@ where $p_{k+1 \, | \, k}(\mathbf{x},\mathbf{y})$ is the probability density func
 \[
 \psi_{k+1}(\mathbf{s}) = \int_{\mathbf{y} \in \mathbb{R}^n} \psi_{\mathbf{x}_{k+1} \, | \, \mathbf{x}_k = \mathbf{y}}(\mathbf{s}) p_k(\mathbf{y}) \, d \mathbf{y}.
 \]
-
+Note that
+\[
+p_k(\mathbf{y}) = (2 \pi)^{-n} \int_{\mathbf{u} \in \mathbb{R}^n}  e^{-i \mathbf{u} \cdot \mathbf{y}} \psi_k(\mathbf{u}) \, d \mathbf{u}.
+\]
+Putting these equations together, and using (\ref{eqn:prodcharfun}), we have
+\begin{equation}
+\label{eqn:charfunevol1}
+\psi_{k+1}(\mathbf{s}) = \exp\left( -h \sum_{j=1}^n |g_j s_j|^\alpha \right) \int_{ \mathbf{u} \in \mathbb{R}^n }  \biggl[ (2 \pi)^{-n} \int_{\mathbf{y} \in \mathbb{R}^n} e^{i (\mathbf{s} - \mathbf{u}) \cdot \mathbf{y}} e^{i \mathbf{s} \cdot \mathbf{f}(\mathbf{y}) h }  \, d \mathbf{y} \biggr] \psi_k(\mathbf{u})  \, d \mathbf{u}
+\end{equation}
+Clearly, the integral in square brackets becomes singular as $h \to 0$, and
+\[
+(2 \pi)^{-n} \int_{\mathbf{y} \in \mathbb{R}^n} e^{i (\mathbf{s} - \mathbf{u}) \cdot \mathbf{y}}  \, d \mathbf{y} = \delta( \mathbf{s} - \mathbf{u} ).
+\]
+To get around this, we expand in a series in $h$:
+\[
+e^{i \mathbf{s} \cdot \mathbf{f}(\mathbf{y}) h } = 1 + i (\mathbf{s} \cdot \mathbf{f}(\mathbf{y}) ) h - (\mathbf{s} \cdot \mathbf{f}(\mathbf{y}))^2 \frac{h^2}{2} + O(h^3)
+\]
+Then
+\begin{multline*}
+(2 \pi)^{-n} \int_{\mathbf{y} \in \mathbb{R}^n} e^{i (\mathbf{s} - \mathbf{u}) \cdot \mathbf{y}}  e^{i \mathbf{s} \cdot \mathbf{f}(\mathbf{y}) h } \, d \mathbf{y} = \delta( \mathbf{s} - \mathbf{u} ) + (2 \pi)^{-n} i \mathbf{s}^T \widehat{\mathbf{f}}(\mathbf{s}-\mathbf{u}) h \\
+- (2 \pi)^{-n} \mathbf{s}^T \left[ \widehat{\mathbf{f} \mathbf{f}^T}(\mathbf{s} - \mathbf{u}) \right] \mathbf{s} \frac{h^2}{2} + O(h^3)
+\end{multline*}
+Using this in (\ref{eqn:charfunevol1}), we have
+\begin{multline}
+	\label{eqn:charfunevol2}
+\psi_{k+1}(\mathbf{s}) = \exp\left( -h \sum_{j=1}^n |g_j s_j|^\alpha \right) \biggl[ \psi_k(\mathbf{s}) + (2 \pi)^{-n} i h \mathbf{s}^T \int_{\mathbf{u} \in \mathbb{R}^n } \widehat{\mathbf{f}}(\mathbf{s}-\mathbf{u}) \psi_k(\mathbf{u}) \, d \mathbf{u}   \\
+ - (2 \pi)^{-n} \frac{h^2}{2} \mathbf{s}^T  \left( \int_{\mathbf{u} \in \mathbb{R}^n} \widehat{\mathbf{f} \mathbf{f}^T}(\mathbf{s} - \mathbf{u})  \psi_k(\mathbf{u}) \, d \mathbf{u} \right)  \mathbf{s} \biggr] 
+\end{multline}
+\paragraph{$\mathcal{L}^2$ Drifts.} Let $L$ be a positive integer. For the drift $\mathbf{f} = [f_1, f_2, \ldots, f_n]$, suppose that each $f_m \in \mathcal{L}^2([-L \pi, L \pi]^n, \mathbb{R})$.  We will represent $f_m$ via Fourier series:
+\[
+c^\mathbf{j}_m = (2 \pi L)^{-n} \int_{ [-L\pi, L\pi]^n } e^{-i \mathbf{j} \cdot \mathbf{x} / L} f_m( \mathbf{x} ) \, d\mathbf{x},
+\] 
+from which we can form the approximate drift
+\[
+\phi_m (\mathbf{x}) = \sum_{\mathbf{j}} c^\mathbf{j}_m e^{i \mathbf{j} \cdot \mathbf{x} / L}
+\]
+We sum over the set
+\[
+\{ \mathbf{j} \in \mathbb{Z}^n \, | \, -J \leq j_m \leq J \text{ for all } m \}.
+\]
+Note that the Fourier transform is
+\begin{equation}
+\label{eqn:L2drifthat}
+\widehat{\phi}_m (\mathbf{s}) = (2 \pi)^n \sum_{\mathbf{j}} c^{\mathbf{j}}_m \delta(\mathbf{s} + \mathbf{j}/L)
+\end{equation}
+For the approximate drift, we also have 
+\[
+\phi_{m} (\mathbf{x}) \phi_{m'} (\mathbf{x}) = \sum_{\mathbf{j}, \mathbf{j}'} c^{\mathbf{j}}_m c^{\mathbf{j}'}_{m'} e^{i (\mathbf{j}+ \mathbf{j}') \cdot \mathbf{x}/L }.
+\]
+Let $\mathbf{k} = \mathbf{j} + \mathbf{j}'$.  Then the double sum becomes
+\[
+\phi_{m} (\mathbf{x}) \phi_{m'} (\mathbf{x}) = \sum_{\mathbf{k}} \left[ \sum_{\mathbf{j}}  c^{\mathbf{j}}_m c^{\mathbf{k} - \mathbf{j}}_{m'} \right]  e^{i \mathbf{k} \cdot \mathbf{x} / L },
+\]
+where $\mathbf{k}$ is summed over
+\[
+\{ \mathbf{k} \in \mathbb{Z}^n \, | \, -2 J \leq k_m \leq 2 J \text{ for all } m \}.
+\]
+Then the Fourier transform is
+\begin{equation}
+\label{eqn:L2drift2hat}
+\widehat{ \phi_m \phi_{m'} }(\mathbf{s}) = (2 \pi)^n \sum_{\mathbf{k}} \left[ \sum_{\mathbf{j}}  c^{\mathbf{j}}_m c^{\mathbf{k} - \mathbf{j}}_{m'} \right] \delta(\mathbf{s} + \mathbf{k} / L)
+\end{equation}
+Using (\ref{eqn:L2drifthat}) and (\ref{eqn:L2drift2hat}), we have
+\begin{align*}
+\widehat{\mathbf{f}} (\mathbf{s}) &\approx (2 \pi)^n \sum_{\mathbf{j}} \mathbf{c}^{\mathbf{j}} \delta(\mathbf{s} + \mathbf{j}/L) \\
+\widehat{\mathbf{f} \mathbf{f}^T} (\mathbf{s}) &\approx (2 \pi)^n \sum_{\mathbf{k}} \left[ \sum_{\mathbf{j}}  \mathbf{c}^{\mathbf{j}} \left( \mathbf{c}^{\mathbf{k} - \mathbf{j}} \right)^T \right] \delta(\mathbf{s} + \mathbf{k} / L)
+\end{align*}
+Using these approximations in (\ref{eqn:charfunevol2}), we have
+\begin{multline}
+	\label{eqn:charfunevol3}
+	\psi_{k+1}(\mathbf{s}) = \exp\left( -h \sum_{j=1}^n |g_j s_j|^\alpha \right) \biggl[ \psi_k(\mathbf{s}) + i h \mathbf{s}^T  \sum_{\mathbf{j}} \mathbf{c}^{\mathbf{j}} \psi_k(\mathbf{s} + \mathbf{j}/L)  \\
+	- \frac{h^2}{2} \mathbf{s}^T \left(  \sum_{\mathbf{k}} \left( \mathbf{c} \ast  \mathbf{c}^T \right)_{\mathbf{k}}  \psi_k(\mathbf{s} + \mathbf{k} / L) \right) \mathbf{s}   \biggr] 
+\end{multline}
 \paragraph{Basic Estimation.} Suppose we seek to use time series observations
 \[
 \{ \mathbf{y}_0, \mathbf{y}_1, \ldots, \mathbf{y}_N \}
